@@ -51,7 +51,7 @@ python sdk.py test --machine local/opxy-machines/drone
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Quadcopter screen |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 1, page 84) and a long default amp release |
 
-A voice is 60 bytes; the definition allows 256 voices. Arithmetic is 32-bit
-fixed point apart from 64-bit additions in the filter's saturation; the device
-links no 64-bit multiply. See [native builds](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md) to put it on
-the device.
+A voice is 60 bytes; the definition allows 256 voices. The audio loop uses
+Q15 samples, Q17 filter state, Q14 filter coefficients and Q23 smoothed
+controls, with 32-bit products and sums. See [native builds](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md)
+to put it on the device.

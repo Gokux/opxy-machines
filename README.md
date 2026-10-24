@@ -51,9 +51,19 @@ python sdk.py test --machine local/opxy-machines/drone --machine local/opxy-mach
 ```
 
 This validates metadata and artwork, builds previews, runs each machine's
-display tests and estimates CPU cost on the host. Add `--firmware` to compile
+sound and display tests and estimates CPU cost on the host. Add `--firmware` to compile
 all three alongside the bundled machines with the pinned Blackfin tools.
-The repository's CI runs both checks against a pinned SDK 1.0 commit.
+The repository's CI runs both checks against a pinned SDK 1.0 commit, checks
+sound arithmetic with undefined-behavior sanitization, and requires each
+machine's CPU estimate to stay below 20,000 instructions per voice block.
+These are host estimates; they do not measure device cycles or polyphony.
+
+Audio uses Q15 samples internally and returns Q31 buffers. Oscillator phases
+remain 32-bit. Drone keeps extra filter precision; Solar prepares gain and FM
+ramps per block; Papa Srapa retains full-precision slow FM glide. These choices
+trade some arithmetic precision for lower cost. The sound tests cover control
+extremes and transitions, output bounds, retriggering, and preset levels
+against the original implementation.
 
 ## Build firmware
 

@@ -9,8 +9,8 @@ using opxy::u32;
 struct Voice {
     u32 phases[5];      // centre, upper and lower saw, fifth saw, sub sine
     u32 lfos[3];        // cutoff sweep and the two detune drifts
-    i32 low, band;      // state-variable filter
-    i32 cutoff, damping, sub, fifth;  // smoothed controls
+    i32 low, band;      // Q17 state-variable filter
+    i32 cutoff, damping, sub, fifth;  // Q23 smoothed controls
     u32 initialized;
 };
 // Drone voices share nothing.

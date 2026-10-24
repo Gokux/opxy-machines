@@ -32,7 +32,7 @@ hardware would. Unlike the original, the voicing follows the played note.
 Pitch is read once per 64-sample block; an oscillator above about 16.5 kHz
 falls silent. Five oscillators at 0.18 each pass a cubic soft clip limiting the
 output to a quarter of full scale (-12 dB). Mute changes and FM depth smooth per
-sample. Solar has no filter of its own: the device's track filter and effects
+sample through block-prepared linear ramps. Solar has no filter of its own: the device's track filter and effects
 follow it.
 
 Presets: **Classic**, **Dusk**, **Neon** and **Eclipse**.
@@ -58,8 +58,9 @@ python sdk.py test --machine local/opxy-machines/solar
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Sunset screen |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 5, page 85) and a long default amp release |
 
-A voice is 144 bytes; the definition allows 256 voices. Arithmetic is 32-bit
-fixed point; the device links no 64-bit multiply.
+A voice is 144 bytes; the definition allows 256 voices. Samples and
+cross-modulation use Q15, gains and FM ramps use Q23, and oscillator phases
+remain 32-bit. The five oscillator calls preserve their modulation order.
 
 For device builds and enum control behavior, see the repository
 [build instructions](../README.md#build-firmware).

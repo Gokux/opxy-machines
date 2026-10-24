@@ -57,8 +57,9 @@ python sdk.py test --machine local/opxy-machines/papasrapa
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Megaphone screen |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 8, page 86) and a long default amp release |
 
-A voice is 28 bytes; the definition allows 256 voices. Arithmetic is 32-bit
-fixed point; the device links no 64-bit multiply.
+A voice is 28 bytes; the definition allows 256 voices. Samples use Q15,
+pitch ratios Q12 and smoothed AM gain Q19. The FM glide retains Q31 precision
+so the slowest LFO setting continues to move. Oscillator phases remain 32-bit.
 
 For device builds and enum control behavior, see the repository
 [build instructions](../README.md#build-firmware).

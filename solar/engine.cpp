@@ -10,7 +10,6 @@ using opxy::q31::multiply;
 
 // Per-oscillator level, Q31: five at once stay below full scale.
 const i32 OSC_LEVEL = 0x170a3d71;          // 0.18
-const i32 SMOOTH = 6078353;                // per-sample smoothing, about 0.0028
 const i32 DRIFT_FOLLOW = 3221225;          // per-block approach to a new drift, about 0.0015
 const i32 DRIFT_RANGE = 64424509;          // 0.03: full Drift wanders about +-26 cents
 const i32 FM_MAX = 1503238554;             // 0.7: deepest cross-modulation at full Volt
@@ -47,36 +46,81 @@ inline u32 scale(u32 increment, i32 ratio, u32 ceiling) {
     return sixteenth >= ceiling >> 4 ? ceiling : sixteenth << 4;
 }
 
-// A negistor relaxation oscillator: an exponential charge, then an abrupt
-// discharge. The reset gets the same PolyBLEP correction as a saw, scaled to
-// this curve's smaller step.
+// The audio loop uses Q15 samples and Q23 smoothed gains. Products fit
+// in 32 bits; phases and pitch increments retain all 32 bits.
+inline i32 floor_bits(i32 value, unsigned bits) {
+    return value >= 0 ? value >> bits : -1 - ((-1 - value) >> bits);
+}
+inline i32 mul15(i32 a, i32 b) { return floor_bits(a * b, 15); }
+
+// Negistor curve with eight fractional interpolation bits (Q15 output).
 inline i32 negistor(u32 phase, u32 increment) {
     const u32 index = phase >> 24;
-    const i32 fraction = static_cast<i32>((phase & 0xffffffu) << 7);
-    i32 value = solar_charge[index] + multiply(solar_charge[index + 1] - solar_charge[index], fraction);
+    const i32 low = floor_bits(solar_charge[index], 16);
+    const i32 high = floor_bits(solar_charge[index + 1], 16);
+    i32 value = low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
     const u32 step = increment >> 16;
     if (step && increment < 0x80000000u) {
         if (phase < increment) {
             const u32 x = 65535u - minimum(phase / step, 65535u);
-            value += multiply(static_cast<i32>((x * x) >> 1), SOLAR_JUMP);
+            value += mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
         } else if (0u - phase < increment) {
             const u32 x = 65535u - minimum((0u - phase) / step, 65535u);
-            value -= multiply(static_cast<i32>((x * x) >> 1), SOLAR_JUMP);
+            value -= mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
         }
     }
     return value;
 }
 
-// Cubic soft clip to a quarter of full scale (-12 dB), the declared output peak.
 inline i32 clip(i32 x) {
-    const i32 cube = multiply(multiply(x, x), x);
-    const i32 shaped = multiply(x, 0x60000000) - multiply(cube, 0x20000000);
-    return multiply(shaped, 0x40000000);
+    x = x < -32767 ? -32767 : x > 32767 ? 32767 : x;
+    const i32 cube = mul15(mul15(x, x), x);
+    // (3x - x^3) / 8; quarter-scale peak in the Q31 output buffer.
+    return (3 * x - cube) * 8192;
 }
 
-inline void smooth(i32& current, i32 target) {
-    current += multiply(target - current, SMOOTH);
+// A 64-sample linear ramp follows the same ~8 ms control time constant.
+// Compute its slope once per block; the audio loop only adds it. The Q23
+// endpoint quantization is below two Q15 sample/gain steps.
+inline i32 ramp(i32& current, i32 target) {
+    const i32 difference = target - current;
+    if (difference > -384 && difference < 384) { current = target; return 0; }
+    return floor_bits(difference * 43, 14);
 }
+
+// Specializing the five oscillators exposes fixed state offsets to the compiler.
+// Calls stay ordered: each oscillator reads its neighbor's most recent sample.
+template <unsigned n, bool moving>
+inline i32 oscillator(Voice& voice, const u32* increments, const i32* steps) {
+    if (moving) voice.gains[n] += steps[n];
+    // Each oscillator is modulated by its neighbour, the first by the last.
+    const i32 modulator = voice.outputs[n == 0 ? 4 : n - 1];
+    const i32 depth = mul15(voice.fm >> 8, modulator);
+    // Split the unsigned increment so a signed Q15 product cannot overflow.
+    const i32 bend = static_cast<i32>(increments[n] >> 16) * depth
+        + floor_bits(static_cast<i32>(increments[n] & 65535u) * depth, 16);
+    const u32 increment = increments[n] + static_cast<u32>(bend * 2);
+    const i32 sample = negistor(voice.phases[n], increment);
+    voice.outputs[n] = sample;
+    const i32 result = mul15(sample, voice.gains[n] >> 8);
+    voice.phases[n] += increment;
+    return result;
+}
+
+template <bool moving>
+inline void render_block(Voice& voice, opxy::Output output, const u32* increments, const i32* steps, i32 fm_step) {
+    for (unsigned i = 0; i != opxy::block_frames; ++i) {
+        if (moving) voice.fm += fm_step;
+        i32 mix = 0;
+        mix += oscillator<0, moving>(voice, increments, steps);
+        mix += oscillator<1, moving>(voice, increments, steps);
+        mix += oscillator<2, moving>(voice, increments, steps);
+        mix += oscillator<3, moving>(voice, increments, steps);
+        mix += oscillator<4, moving>(voice, increments, steps);
+        output[i] = clip(mix);
+    }
+}
+
 }
 
 // The oscillators run free on the real instrument, so a note starts them at
@@ -132,29 +176,22 @@ inline void render(Voice& voice, Shared&, u32, opxy::Output output,
         const u32 increment = scale(pitch[0], ratio, HIGHEST);
         const bool audible = increment < HIGHEST && (mute >> n & 1u);
         increments[n] = increment < HIGHEST ? increment : 0;
-        targets[n] = audible ? OSC_LEVEL : 0;
+        targets[n] = audible ? OSC_LEVEL >> 8 : 0;
     }
     if (!voice.initialized) {
         for (u32 n = 0; n < 5; ++n) voice.gains[n] = targets[n];
-        voice.fm = fm;
+        voice.fm = fm >> 8;
         voice.initialized = 1;
     }
-    for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        smooth(voice.fm, fm);
-        i32 mix = 0;
-        for (u32 n = 0; n < 5; ++n) {
-            smooth(voice.gains[n], targets[n]);
-            // Each oscillator is modulated by its neighbour, the first by the last.
-            const i32 modulator = voice.outputs[n == 0 ? 4 : n - 1];
-            const u32 increment = increments[n] + (static_cast<u32>(multiply(
-                static_cast<i32>(increments[n] >> 1), multiply(voice.fm, modulator))) << 1);
-            const i32 sample = negistor(voice.phases[n], increment);
-            voice.outputs[n] = sample;
-            mix += multiply(sample, voice.gains[n]);
-            voice.phases[n] += increment;
-        }
-        output[i] = clip(mix);
+    const i32 fm_step = ramp(voice.fm, fm >> 8);
+    i32 steps[5];
+    bool moving = fm_step != 0;
+    for (unsigned n = 0; n < 5; ++n) {
+        steps[n] = ramp(voice.gains[n], targets[n]);
+        moving = moving || steps[n] != 0;
     }
+    if (moving) render_block<true>(voice, output, increments, steps, fm_step);
+    else render_block<false>(voice, output, increments, steps, fm_step);
 }
 
 } // namespace solar
