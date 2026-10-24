@@ -86,8 +86,10 @@ Solar 5 / 85, Papa Srapa 8 / 86. SDK 1.0 assigns new engines numbers above 33;
 the package's `layout.json` records the actual assignments. Preserve a
 previous build's assignments with
 `--layout <previous-package>/layout.json`, since projects store those numbers.
-Named presets live in each `definition.json`; command-line builds do not
-install them as device presets.
+Each machine includes `presets/default.json`, its device starting sound. The
+SDK's repository-preset support installs this file under
+`content/presets/<id>/default.json` in browser and command-line packages.
+The other named patches in `definition.json` remain browser presets.
 
 Solar's Chord/Mute and Papa Srapa's Range/Mode/Octave work with SDK 1.0 as
 published. On the device their captions are stock numeric values and turning
