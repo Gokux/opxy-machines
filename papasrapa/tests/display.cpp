@@ -1,4 +1,5 @@
 #include "../display.cpp"
+#include <cstring>
 
 // Exercise the retained-frame contract with every combination of control
 // extremes, animation, note starts, track changes and reduced motion.
@@ -23,6 +24,23 @@ int main() {
             display(state, input, frame);
             if (!opxy::draw::valid(frame)) return 1;
         }
+    }
+    // With the alternates shown, the header names every Range, Mode and Octave
+    // choice from the middle of each choice; the own controls keep the stock value.
+    for (opxy::u32 choice = 0; choice < 4; ++choice) {
+        DisplayState state{};
+        papasrapa::Frame frame{};
+        opxy::draw::Input input{};
+        display_reset(state);
+        input.slots[4] = input.slots[6] = static_cast<opxy::i32>(((choice & 1) * 2 + 1) * 0x20000000u);
+        input.slots[5] = static_cast<opxy::i32>((choice * 2 + 1) * 0x10000000u);
+        for (opxy::u32 position = 0; position < opxy::page_controls; ++position) input.shown[position] = static_cast<opxy::u8>(position);
+        display(state, input, frame);
+        for (opxy::u32 position = 0; position < opxy::page_controls; ++position) if (frame.header[position][0]) return 2;
+        input.shown[0] = 4; input.shown[1] = 5; input.shown[2] = 6;
+        display(state, input, frame);
+        if (std::strcmp(frame.header[0], papasrapa_range_labels[choice & 1]) || std::strcmp(frame.header[1], papasrapa_mode_labels[choice]) ||
+            std::strcmp(frame.header[2], papasrapa_octave_labels[choice & 1]) || frame.header[3][0]) return 3;
     }
     return 0;
 }

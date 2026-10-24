@@ -125,5 +125,13 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         place(frame, leds + n, (52 + static_cast<i32>(n) * 36) * unit, y,
               unit + (lit ? flash : 0), lit ? 8 : 2, fill_and_stroke);
     }
+
+    // Chord and Mute by name wherever a position shows them; an empty header
+    // keeps the stock value of the continuous controls.
+    for (u32 i = 0; i < opxy::page_controls; ++i) {
+        const u32 slot = input.shown[i] < opxy::parameter_slots ? input.shown[i] : i;
+        const u32 choice = static_cast<u32>(clamp(input.slots[slot], 0, opxy::q31::maximum)) >> 28;
+        opxy::draw::header(frame, i, slot == 0 ? solar_chord_labels[choice] : slot == 3 ? solar_mute_labels[choice] : "");
+    }
 }
 }

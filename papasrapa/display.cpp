@@ -140,5 +140,15 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         const i32 y = 118 + static_cast<i32>((seed >> 20) % static_cast<u32>(2 * spread + 1)) - spread;
         place(frame, specks + n, x * unit, y * unit, unit, 0, keep);
     }
+
+    // Range, Mode and Octave by name wherever a position shows them; an empty
+    // header keeps the stock value of the continuous controls.
+    for (u32 i = 0; i < opxy::page_controls; ++i) {
+        const u32 slot = input.shown[i] < opxy::parameter_slots ? input.shown[i] : i;
+        const u32 word = static_cast<u32>(clamp(input.slots[slot], 0, opxy::q31::maximum));
+        opxy::draw::header(frame, i, slot == 4 ? papasrapa_range_labels[word >> 30]
+                                   : slot == 5 ? papasrapa_mode_labels[word >> 29]
+                                   : slot == 6 ? papasrapa_octave_labels[word >> 30] : "");
+    }
 }
 }

@@ -91,13 +91,13 @@ SDK's repository-preset support installs this file under
 `content/presets/<id>/default.json` in browser and command-line packages.
 The other named patches in `definition.json` remain browser presets.
 
-Solar's Chord/Mute and Papa Srapa's Range/Mode/Octave work with SDK 1.0 as
-published. On the device their captions are stock numeric values and turning
-an encoder moves through normalized values, so a choice spans several
-detents; the browser shows enum labels. Automatic native labels and one-choice
-stepping are tracked in [SDK issue #71](https://github.com/etcetc000/open-xy/issues/71).
-That improvement is not required to build or play these machines. Drone has
-no enum controls.
+Solar's Chord/Mute and Papa Srapa's Range/Mode/Octave show their choice names
+in the device header: each display writes them with `opxy::draw::header`
+wherever a position shows one of them, including after an encoder press
+selects an alternate. Turning an encoder still moves through normalized
+values, so a choice spans several detents; one-choice stepping is tracked in
+[SDK issue #71](https://github.com/etcetc000/open-xy/issues/71). Drone has no
+enum controls.
 
 ## License
 

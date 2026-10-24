@@ -8,6 +8,10 @@ static const opxy::i32 papasrapa_rate[17] = {
   137732, 191801, 267095, 371946, 517957, 721287, 1004437, 1398740,
   1947831,
 };
+// The header's names for the enum controls, as definition.json labels them.
+static const char* const papasrapa_range_labels[2] = {"x1", "x10"};
+static const char* const papasrapa_mode_labels[4] = {"Drone", "FM", "AM", "Both"};
+static const char* const papasrapa_octave_labels[2] = {"Hi", "Low"};
 // The same rates in Hz, Q10, for the display.
 static const opxy::i32 papasrapa_rate_hz[17] = {
   102, 143, 199, 277, 385, 536, 747, 1040,

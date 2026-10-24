@@ -16,3 +16,6 @@ static const opxy::i32 solar_chords[8][5] = {
 };
 // Bit n sounds oscillator n + 1, like the five mute buttons.
 static const opxy::u32 solar_mutes[8] = {0x1f, 0x07, 0x1c, 0x15, 0x0a, 0x03, 0x18, 0x04};
+// The header's names for both, as definition.json labels them.
+static const char* const solar_chord_labels[8] = {"Oct", "Fifth", "Minor", "Major", "Sus", "Trit", "Clust", "Stack"};
+static const char* const solar_mute_labels[8] = {"12345", "123", "345", "135", "24", "12", "45", "3"};
