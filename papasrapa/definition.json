@@ -4,11 +4,11 @@
   "name": "Papa Srapa",
   "parameters": [
     {"id":"rate","label":"Rate","default":0.35,"mapping":{"kind":"exponential","minimum":0.1,"maximum":20},"display":"percent"},
-    {"id":"mod","label":"Mod","default":0.55,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"mod","label":"Mod","default":0.3,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
     {"id":"divider","label":"Divider","default":0,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
-    {"id":"noise","label":"Noise","default":0,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"noise","label":"Noise","default":0.1,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
     {"id":"range","label":"Range","control":0,"default":0.25,"mapping":{"kind":"enum","labels":["x1","x10"]},"display":"enum"},
-    {"id":"mode","label":"Mode","control":1,"default":0.375,"mapping":{"kind":"enum","labels":["Drone","FM","AM","Both"]},"display":"enum"},
+    {"id":"mode","label":"Mode","control":1,"default":0.125,"mapping":{"kind":"enum","labels":["Drone","FM","AM","Both"]},"display":"enum"},
     {"id":"octave","label":"Octave","control":2,"default":0.25,"mapping":{"kind":"enum","labels":["Hi","Low"]},"display":"enum"},
     {"id":"sh","label":"S H","control":3,"default":0,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"}
   ],
