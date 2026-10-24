@@ -14,8 +14,3 @@ __pycache__/
 *.bin
 *.elf
 *.zip
-
-# Personal tools kept beside the machines, not published.
-devview/
-firmware/
-video/
