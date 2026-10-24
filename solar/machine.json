@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "kind": "synth",
+  "description": "Five free-running negistor saws per voice after the Elta Solar drone voices, with light modulation and cross-FM.",
+  "identity": {
+    "engine": 5,
+    "page": 85
+  },
+  "presetDefaults": {
+    "amp": {
+      "release": 32767
+    }
+  }
+}

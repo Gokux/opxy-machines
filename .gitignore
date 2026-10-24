@@ -1,0 +1,20 @@
+# This repository is the SDK checkout's local/ folder; these stay on the machine.
+toolchain/
+*-preview-*/
+readme-check-*/
+my-preview-*/
+__pycache__/
+*.py[cod]
+# Firmware and stock content never belong in any checkout.
+*.ldr
+*.[lL][dD][rR]
+*.tfw
+*.zfw
+*.bin
+*.elf
+*.zip
+
+# Personal tools kept beside the machines, not published.
+devview/
+firmware/
+video/

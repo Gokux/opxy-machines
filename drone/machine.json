@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "kind": "synth",
+  "description": "Detuned saw stack with sub, fifth and a drifting resonant filter, for slow evolving drones.",
+  "identity": {
+    "engine": 1,
+    "page": 84
+  },
+  "presetDefaults": {
+    "amp": {
+      "release": 32767
+    }
+  }
+}

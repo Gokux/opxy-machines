@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "drone",
+  "name": "Drone",
+  "parameters": [
+    {"id":"spread","label":"Spread","default":0.4,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"tone","label":"Tone","default":0.45,"mapping":{"kind":"exponential","minimum":40,"maximum":6000},"display":"percent"},
+    {"id":"motion","label":"Motion","default":0.4,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"sub","label":"Sub","default":0.5,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"reso","label":"Reso","control":1,"default":0.3,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"rate","label":"Rate","control":2,"default":0.35,"mapping":{"kind":"exponential","minimum":0.02,"maximum":2},"display":"percent"},
+    {"id":"fifth","label":"Fifth","control":3,"default":0,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"}
+  ],
+  "presets": {
+    "Hum":{"spread":0.25,"tone":0.35,"motion":0.3,"sub":0.6,"reso":0.2,"rate":0.3,"fifth":0},
+    "Choir":{"spread":0.6,"tone":0.55,"motion":0.5,"sub":0.3,"reso":0.35,"rate":0.4,"fifth":0.4},
+    "Abyss":{"spread":0.4,"tone":0.15,"motion":0.6,"sub":1,"reso":0.5,"rate":0.15,"fifth":0},
+    "Storm":{"spread":0.9,"tone":0.7,"motion":0.85,"sub":0.5,"reso":0.7,"rate":0.65,"fifth":0.6},
+    "Pipe":{"spread":0.2,"tone":0.55,"motion":0.07,"sub":0.5,"reso":1,"rate":0.35,"fifth":1}
+  },
+  "resources": {
+    "voiceBytes":60,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
+    "outputPeakQ31":536870912,
+    "display":{"kind":"drawing","stateBytes":36,"stateAlignment":4,"paths":4,"points":64,"nodes":24,"palette":9}
+  }
+}

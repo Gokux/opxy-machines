@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "solar",
+  "name": "Solar",
+  "parameters": [
+    {"id":"chord","label":"Chord","default":0.0625,"mapping":{"kind":"enum","labels":["Oct","Fifth","Minor","Major","Sus","Trit","Clust","Stack"]},"display":"enum"},
+    {"id":"volt","label":"Volt","default":0.25,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"mod","label":"Mod","default":0.2,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"mute","label":"Mute","default":0.0625,"mapping":{"kind":"enum","labels":["12345","123","345","135","24","12","45","3"]},"display":"enum"},
+    {"id":"drift","label":"Drift","control":0,"default":0.3,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
+    {"id":"flicker","label":"Flicker","control":2,"default":0.3,"mapping":{"kind":"exponential","minimum":0.05,"maximum":40},"display":"percent"}
+  ],
+  "presets": {
+    "Classic":{"chord":0.0625,"volt":0.2,"mod":0,"mute":0.0625,"drift":0.3,"flicker":0.3},
+    "Dusk":{"chord":0.3125,"volt":0.45,"mod":0.25,"mute":0.0625,"drift":0.5,"flicker":0.15},
+    "Neon":{"chord":0.1875,"volt":0.3,"mod":0.6,"mute":0.4375,"drift":0.2,"flicker":0.9},
+    "Eclipse":{"chord":0.8125,"volt":0.85,"mod":0.3,"mute":0.0625,"drift":0.7,"flicker":0.4}
+  },
+  "resources": {
+    "voiceBytes":144,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
+    "outputPeakQ31":536870912,
+    "display":{"kind":"drawing","stateBytes":36,"stateAlignment":4,"paths":2,"points":64,"nodes":8,"palette":9}
+  }
+}

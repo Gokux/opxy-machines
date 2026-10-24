@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "kind": "synth",
+  "description": "Two Schmitt-trigger oscillators after the Papa Srapa voices of the Elta Solar: sirens, birds, monsters, volleys and surf.",
+  "identity": {
+    "engine": 8,
+    "page": 86
+  },
+  "presetDefaults": {
+    "amp": {
+      "release": 32767
+    }
+  }
+}
