@@ -144,7 +144,9 @@ inline void destroy(Voice&, Shared&, u32) {}
 
 // Parameters: 0 Chord, 1 Volt, 2 Mod, 3 Mute, then the alternates 4 Drift
 // (Chord) and 5 Flicker (Mod). Pitch is read once per block.
-inline void render(Voice& voice, Shared&, u32, opxy::Output output,
+// One definition in the SDK's voice translation unit; avoid an out-of-line
+// inline-function COMDAT section, which the browser linker does not accept.
+void render(Voice& voice, Shared&, u32, opxy::Output output,
                    opxy::Parameters parameters, opxy::Pitch pitch) {
     const i32* chord = solar_chords[static_cast<u32>(nonnegative(parameters[0])) >> 28];
     const i32 volt = nonnegative(parameters[1]);

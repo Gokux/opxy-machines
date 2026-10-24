@@ -72,7 +72,9 @@ inline void destroy(Voice&, Shared&, u32) {}
 // Parameters: 0 Rate, 1 Mod, 2 Divider, 3 Noise, then the alternates 4 Range
 // (Rate), 5 Mode (Mod), 6 Octave (Divider) and 7 S&H (Noise). Mode bit 0 is
 // the FM switch and bit 1 the AM switch, as in the Drone, FM, AM, Both labels.
-inline void render(Voice& voice, Shared&, u32, opxy::Output output,
+// One definition in the SDK's voice translation unit, including its local
+// reciprocal table; neither needs inline-function COMDAT linkage.
+void render(Voice& voice, Shared&, u32, opxy::Output output,
                    opxy::Parameters parameters, opxy::Pitch pitch) {
     const bool ten = parameters[4] >= 0x40000000;
     const u32 rate = static_cast<u32>(lookup(papasrapa_rate, parameters[0])) * (ten ? 10u : 1u);
