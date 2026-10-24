@@ -22,6 +22,6 @@
   "resources": {
     "voiceBytes":28,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
     "outputPeakQ31":536870912,
-    "display":{"kind":"drawing","stateBytes":44,"stateAlignment":4,"paths":4,"points":64,"nodes":20,"palette":9}
+    "display":{"stateBytes":44,"stateAlignment":4,"paths":4,"points":64,"nodes":20,"texts":0,"palette":9}
   }
 }

@@ -1,5 +1,6 @@
 {
   "schema": 1,
+  "sdk": "1.0",
   "kind": "synth",
   "description": "Detuned saw stack with sub, fifth and a drifting resonant filter, for slow evolving drones.",
   "identity": {

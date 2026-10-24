@@ -1,4 +1,5 @@
-# This repository is the SDK checkout's local/ folder; these stay on the machine.
+# Local development outputs; firmware belongs outside every checkout.
+local/
 toolchain/
 *-preview-*/
 readme-check-*/

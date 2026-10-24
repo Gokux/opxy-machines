@@ -2,10 +2,10 @@
 #include <opxy/draw.hpp>
 
 namespace drone {
-// Matches resources.display in definition.json: paths, points, nodes, palette.
+// Matches resources.display in definition.json: paths, points, nodes, texts, palette.
 // A quadcopter seen from above: four spinning blades, then rotor guards,
 // hubs, arms, body, status LED and the ground shadow.
-using Frame = opxy::draw::Frame<4, 64, 24, 9>;
+using Frame = opxy::draw::Frame<4, 64, 24, 0, 9>;
 struct DisplayState {
     opxy::u32 spin[4];   // blade angles, 65536ths of a turn
     opxy::u32 hover;     // hover phase, 65536ths of a cycle

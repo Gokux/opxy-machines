@@ -44,9 +44,9 @@ blinks with the LFO, bars show the held S&H steps, two LEDs show the fm and am
 switches, and the horn flashes on each note start.
 
 ```sh
-python sdk.py preview --engine papasrapa --out local/papasrapa-preview-001
+python sdk.py preview --source local/opxy-machines/papasrapa --out local/papasrapa-preview-001
 python tools/serve_harness.py --preview local/papasrapa-preview-001
-python sdk.py check
+python sdk.py test --machine local/opxy-machines/papasrapa
 ```
 
 | File | Owns |
@@ -55,15 +55,11 @@ python sdk.py check
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [tables.h](tables.h) | LFO rates, shared by sound and screen |
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Megaphone screen |
-| [machine.json](machine.json) | Kind, identity (engine 8, page 86) and a long default amp release |
+| [machine.json](machine.json) | SDK version, kind, preferred identity (engine 8, page 86) and a long default amp release |
 
-A voice is 28 bytes; the definition allows 256 voices. Arithmetic is 32-bit
-fixed point; the device links no 64-bit multiply.
+A voice is 28 bytes; the definition allows 256 voices. Samples use Q15,
+pitch ratios Q12 and smoothed AM gain Q19. The FM glide retains Q31 precision
+so the slowest LFO setting continues to move. Oscillator phases remain 32-bit.
 
-## Native notes
-
-Range, Mode and Octave are enum controls. With the SDK as published, the device
-header shows them as the stock 0–99 value rather than their labels, and an
-encoder detent moves 1 %, so a two-way choice switches at half travel. The
-screen's switch LEDs show the mode either way. See
-[native builds](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md) to put it on the device.
+For device builds and enum control behavior, see the repository
+[build instructions](../README.md#build-firmware).

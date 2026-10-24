@@ -1,0 +1,82 @@
+name: Machine checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # SDK 1.0: update deliberately when adopting another SDK revision.
+  OPEN_XY_REF: 452bb56687e7335167f9e3cc44e5ce2bca94b1bb
+
+jobs:
+  machines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: machines
+      - uses: actions/checkout@v4
+        with:
+          repository: etcetc000/open-xy
+          ref: ${{ env.OPEN_XY_REF }}
+          path: open-xy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preview and host test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld
+          python -m pip install numpy==2.3.5
+      - name: Validate, build previews and run machine tests
+        shell: python
+        run: |
+          import re
+          import subprocess
+          import sys
+          command = [sys.executable, 'open-xy/sdk.py', 'test', '--cxx', 'clang++', '--host-cxx', 'g++']
+          for machine in ('drone', 'solar', 'papasrapa'):
+              command += ['--machine', 'machines/' + machine]
+          result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+          print(result.stdout, flush=True)
+          if result.returncode:
+              raise SystemExit(result.returncode)
+          estimates = dict(re.findall(r'CPU estimate .*?: (.*?) about ([\d,]+) Blackfin instructions', result.stdout))
+          if set(estimates) != {'Drone', 'Solar', 'Papa Srapa'}:
+              raise SystemExit('Missing CPU estimates')
+          for machine, estimate in estimates.items():
+              if int(estimate.replace(',', '')) >= 20000:
+                  raise SystemExit(machine + ': CPU estimate must stay below 20,000')
+      - name: Sound arithmetic sanitization
+        shell: bash
+        run: |
+          for machine in drone solar papasrapa; do
+            clang++ -std=c++11 -O1 -g -fsanitize=undefined -fno-sanitize-recover=all -I open-xy/sdk/include "machines/$machine/tests/sound.cpp" -o "$RUNNER_TEMP/$machine-sound"
+            "$RUNNER_TEMP/$machine-sound"
+          done
+
+  firmware:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: machines
+      - uses: actions/checkout@v4
+        with:
+          repository: etcetc000/open-xy
+          ref: ${{ env.OPEN_XY_REF }}
+          path: open-xy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pinned Blackfin tools
+        run: python open-xy/sdk.py toolchain fetch
+      - name: Compile with the bundled machines
+        run: python open-xy/sdk.py compile --machine machines/drone --machine machines/solar --machine machines/papasrapa --out "$env:RUNNER_TEMP/module"
