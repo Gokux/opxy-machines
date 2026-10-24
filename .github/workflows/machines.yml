@@ -10,7 +10,7 @@ permissions:
 
 env:
   # SDK 1.0: update deliberately when adopting another SDK revision.
-  OPEN_XY_REF: 452bb56687e7335167f9e3cc44e5ce2bca94b1bb
+  OPEN_XY_REF: 66894360db3a9256d969f5ea7f37c2398c855845
 
 jobs:
   machines:
@@ -80,3 +80,18 @@ jobs:
         run: python open-xy/sdk.py toolchain fetch
       - name: Compile with the bundled machines
         run: python open-xy/sdk.py compile --machine machines/drone --machine machines/solar --machine machines/papasrapa --out "$env:RUNNER_TEMP/module"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check browser linker compatibility
+        run: |
+          node --input-type=module -e "
+          import {readObject} from './open-xy/builder/core.mjs';
+          import {readdirSync, readFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const root = join(process.env.RUNNER_TEMP, 'module');
+          const names = readdirSync(root, {recursive: true}).filter(name => name.endsWith('.o'));
+          if (!names.length) throw new Error('No native objects');
+          for (const name of names) readObject(readFileSync(join(root, name)));
+          console.log('PASS: browser linker accepts ' + names.length + ' native objects');
+          "
