@@ -1,5 +1,6 @@
 {
   "schema": 1,
+  "sdk": "1.0",
   "kind": "synth",
   "description": "Two Schmitt-trigger oscillators after the Papa Srapa voices of the Elta Solar: sirens, birds, monsters, volleys and surf.",
   "identity": {

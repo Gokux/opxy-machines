@@ -44,9 +44,9 @@ a pitch staff: Chord places them, Mute dims them, Drift sways them, and they
 flash on each note start.
 
 ```sh
-python sdk.py preview --engine solar --out local/solar-preview-001
+python sdk.py preview --source local/opxy-machines/solar --out local/solar-preview-001
 python tools/serve_harness.py --preview local/solar-preview-001
-python sdk.py check
+python sdk.py test --machine local/opxy-machines/solar
 ```
 
 | File | Owns |
@@ -56,15 +56,10 @@ python sdk.py check
 | [chords.h](chords.h) | Voicings and mute patterns, shared by sound and screen |
 | [tables.h](tables.h) | Negistor curve, semitone, Volt and Flicker tables |
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Sunset screen |
-| [machine.json](machine.json) | Kind, identity (engine 5, page 85) and a long default amp release |
+| [machine.json](machine.json) | SDK version, kind, preferred identity (engine 5, page 85) and a long default amp release |
 
 A voice is 144 bytes; the definition allows 256 voices. Arithmetic is 32-bit
 fixed point; the device links no 64-bit multiply.
 
-## Native notes
-
-Chord and Mute are enum controls. With the SDK as published, the device header
-shows them as the stock 0–99 value rather than their labels, and an encoder
-detent moves 1 %, so each of the eight choices spans about 12 detents. The
-screen's LEDs show the chord and mute pattern either way. See
-[native builds](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md) to put it on the device.
+For device builds and enum control behavior, see the repository
+[build instructions](../README.md#build-firmware).

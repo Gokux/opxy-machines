@@ -1,4 +1,4 @@
-<g id="local_panel">
+<g id="solar_panel">
     <!-- Pitch staff for the five oscillators: octaves from -2 to +2. -->
     <path d="M36,70 L212,70" fill="none" stroke="#191919" stroke-width="1"/>
     <path d="M36,94 L212,94" fill="none" stroke="#191919" stroke-width="1"/>
@@ -6,8 +6,8 @@
     <path d="M36,142 L212,142" fill="none" stroke="#191919" stroke-width="1"/>
     <path d="M36,166 L212,166" fill="none" stroke="#191919" stroke-width="1"/>
     <!-- Exactly 64 vertices: Move, 63 Lines, Close; coordinates change in place. -->
-    <path id="local_node_0" transform="matrix(1 0 0 1 640 120)" d="M40,0 L33.8363,3.3326 L39.2314,7.8036 L32.536,9.8697 L36.9552,15.3073 L29.9853,16.0275 L33.2588,22.2228 L26.2824,21.5694 L28.2843,28.2843 L21.5694,26.2824 L22.2228,33.2588 L16.0275,29.9853 L15.3073,36.9552 L9.8697,32.536 L7.8036,39.2314 L3.3326,33.8363 L0,40 L-3.3326,33.8363 L-7.8036,39.2314 L-9.8697,32.536 L-15.3073,36.9552 L-16.0275,29.9853 L-22.2228,33.2588 L-21.5694,26.2824 L-28.2843,28.2843 L-26.2824,21.5694 L-33.2588,22.2228 L-29.9853,16.0275 L-36.9552,15.3073 L-32.536,9.8697 L-39.2314,7.8036 L-33.8363,3.3326 L-40,0 L-33.8363,-3.3326 L-39.2314,-7.8036 L-32.536,-9.8697 L-36.9552,-15.3073 L-29.9853,-16.0275 L-33.2588,-22.2228 L-26.2824,-21.5694 L-28.2843,-28.2843 L-21.5694,-26.2824 L-22.2228,-33.2588 L-16.0275,-29.9853 L-15.3073,-36.9552 L-9.8697,-32.536 L-7.8036,-39.2314 L-3.3326,-33.8363 L-0,-40 L3.3326,-33.8363 L7.8036,-39.2314 L9.8697,-32.536 L15.3073,-36.9552 L16.0275,-29.9853 L22.2228,-33.2588 L21.5694,-26.2824 L28.2843,-28.2843 L26.2824,-21.5694 L33.2588,-22.2228 L29.9853,-16.0275 L36.9552,-15.3073 L32.536,-9.8697 L39.2314,-7.8036 L33.8363,-3.3326 Z" fill="none" stroke="#969696" stroke-width="1"/>
-    <circle id="local_node_2" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="26" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_0" transform="matrix(1 0 0 1 640 120)" d="M40,0 L33.8363,3.3326 L39.2314,7.8036 L32.536,9.8697 L36.9552,15.3073 L29.9853,16.0275 L33.2588,22.2228 L26.2824,21.5694 L28.2843,28.2843 L21.5694,26.2824 L22.2228,33.2588 L16.0275,29.9853 L15.3073,36.9552 L9.8697,32.536 L7.8036,39.2314 L3.3326,33.8363 L0,40 L-3.3326,33.8363 L-7.8036,39.2314 L-9.8697,32.536 L-15.3073,36.9552 L-16.0275,29.9853 L-22.2228,33.2588 L-21.5694,26.2824 L-28.2843,28.2843 L-26.2824,21.5694 L-33.2588,22.2228 L-29.9853,16.0275 L-36.9552,15.3073 L-32.536,9.8697 L-39.2314,7.8036 L-33.8363,3.3326 L-40,0 L-33.8363,-3.3326 L-39.2314,-7.8036 L-32.536,-9.8697 L-36.9552,-15.3073 L-29.9853,-16.0275 L-33.2588,-22.2228 L-26.2824,-21.5694 L-28.2843,-28.2843 L-21.5694,-26.2824 L-22.2228,-33.2588 L-16.0275,-29.9853 L-15.3073,-36.9552 L-9.8697,-32.536 L-7.8036,-39.2314 L-3.3326,-33.8363 L-0,-40 L3.3326,-33.8363 L7.8036,-39.2314 L9.8697,-32.536 L15.3073,-36.9552 L16.0275,-29.9853 L22.2228,-33.2588 L21.5694,-26.2824 L28.2843,-28.2843 L26.2824,-21.5694 L33.2588,-22.2228 L29.9853,-16.0275 L36.9552,-15.3073 L32.536,-9.8697 L39.2314,-7.8036 L33.8363,-3.3326 Z" fill="none" stroke="#969696" stroke-width="1"/>
+    <circle id="solar_node_2" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="26" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
     <!-- Ground: hides the setting sun, then horizon and reflections. -->
     <path d="M236,170 L480,170 L480,220 L236,220 Z" fill="#000000" stroke="none"/>
     <path d="M236,170 L472,170" fill="none" stroke="#7D7D7D" stroke-width="1"/>
@@ -15,21 +15,21 @@
     <path d="M284,186 L396,186" fill="none" stroke="#323232" stroke-width="1"/>
     <path d="M266,196 L414,196" fill="none" stroke="#323232" stroke-width="1"/>
     <path d="M244,208 L436,208" fill="none" stroke="#323232" stroke-width="1"/>
-    <path id="local_node_1" transform="matrix(1 0 0 1 640 120)" d="M-60,0 L-58.0952,0 L-56.1905,0 L-54.2857,0 L-52.381,0 L-50.4762,0 L-48.5714,0 L-46.6667,0 L-44.7619,0 L-42.8571,0 L-40.9524,0 L-39.0476,0 L-37.1429,0 L-35.2381,0 L-33.3333,0 L-31.4286,0 L-29.5238,0 L-27.619,0 L-25.7143,0 L-23.8095,0 L-21.9048,0 L-20,0 L-18.0952,0 L-16.1905,0 L-14.2857,0 L-12.381,0 L-10.4762,0 L-8.5714,0 L-6.6667,0 L-4.7619,0 L-2.8571,0 L-0.9524,0 L0.9524,0 L2.8571,0 L4.7619,0 L6.6667,0 L8.5714,0 L10.4762,0 L12.381,0 L14.2857,0 L16.1905,0 L18.0952,0 L20,0 L21.9048,0 L23.8095,0 L25.7143,0 L27.619,0 L29.5238,0 L31.4286,0 L33.3333,0 L35.2381,0 L37.1429,0 L39.0476,0 L40.9524,0 L42.8571,0 L44.7619,0 L46.6667,0 L48.5714,0 L50.4762,0 L52.381,0 L54.2857,0 L56.1905,0 L58.0952,0 L60,0 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
+    <path id="solar_node_1" transform="matrix(1 0 0 1 640 120)" d="M-60,0 L-58.0952,0 L-56.1905,0 L-54.2857,0 L-52.381,0 L-50.4762,0 L-48.5714,0 L-46.6667,0 L-44.7619,0 L-42.8571,0 L-40.9524,0 L-39.0476,0 L-37.1429,0 L-35.2381,0 L-33.3333,0 L-31.4286,0 L-29.5238,0 L-27.619,0 L-25.7143,0 L-23.8095,0 L-21.9048,0 L-20,0 L-18.0952,0 L-16.1905,0 L-14.2857,0 L-12.381,0 L-10.4762,0 L-8.5714,0 L-6.6667,0 L-4.7619,0 L-2.8571,0 L-0.9524,0 L0.9524,0 L2.8571,0 L4.7619,0 L6.6667,0 L8.5714,0 L10.4762,0 L12.381,0 L14.2857,0 L16.1905,0 L18.0952,0 L20,0 L21.9048,0 L23.8095,0 L25.7143,0 L27.619,0 L29.5238,0 L31.4286,0 L33.3333,0 L35.2381,0 L37.1429,0 L39.0476,0 L40.9524,0 L42.8571,0 L44.7619,0 L46.6667,0 L48.5714,0 L50.4762,0 L52.381,0 L54.2857,0 L56.1905,0 L58.0952,0 L60,0 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
     <!-- OSC STATUS: one LED per oscillator. -->
-    <path id="local_node_3" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path id="local_node_4" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path id="local_node_5" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path id="local_node_6" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path id="local_node_7" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_3" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_4" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_5" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_6" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <path id="solar_node_7" transform="matrix(1 0 0 1 640 120)" d="M-5,-7 L5,-7 L5,7 L-5,7 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
     <!-- Palette donors: the stock grey steps, offscreen. -->
-    <circle id="local_palette_0" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#000000" stroke="#000000" stroke-width="1"/>
-    <circle id="local_palette_1" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#191919" stroke="#191919" stroke-width="1"/>
-    <circle id="local_palette_2" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#323232" stroke="#323232" stroke-width="1"/>
-    <circle id="local_palette_3" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#4B4B4B" stroke="#4B4B4B" stroke-width="1"/>
-    <circle id="local_palette_4" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#646464" stroke="#646464" stroke-width="1"/>
-    <circle id="local_palette_5" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#7D7D7D" stroke="#7D7D7D" stroke-width="1"/>
-    <circle id="local_palette_6" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#969696" stroke="#969696" stroke-width="1"/>
-    <circle id="local_palette_7" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#AFAFAF" stroke="#AFAFAF" stroke-width="1"/>
-    <circle id="local_palette_8" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <circle id="solar_palette_0" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#000000" stroke="#000000" stroke-width="1"/>
+    <circle id="solar_palette_1" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#191919" stroke="#191919" stroke-width="1"/>
+    <circle id="solar_palette_2" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#323232" stroke="#323232" stroke-width="1"/>
+    <circle id="solar_palette_3" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#4B4B4B" stroke="#4B4B4B" stroke-width="1"/>
+    <circle id="solar_palette_4" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#646464" stroke="#646464" stroke-width="1"/>
+    <circle id="solar_palette_5" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#7D7D7D" stroke="#7D7D7D" stroke-width="1"/>
+    <circle id="solar_palette_6" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#969696" stroke="#969696" stroke-width="1"/>
+    <circle id="solar_palette_7" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#AFAFAF" stroke="#AFAFAF" stroke-width="1"/>
+    <circle id="solar_palette_8" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
 </g>
