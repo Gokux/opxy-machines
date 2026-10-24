@@ -71,9 +71,10 @@ Replace `<private>` with a folder outside every checkout, for example
 folder for every build. Firmware, stock content and firmware-containing
 packages must stay outside checkouts, including ignored `local/` folders.
 
-The manifests retain the preferred identities: Drone engine 1 / page 84,
-Solar 5 / 85, Papa Srapa 8 / 86. The SDK assigns available numbers when these
-are occupied. Preserve a previous build's assignments with
+The manifests retain the original identity requests: Drone engine 1 / page 84,
+Solar 5 / 85, Papa Srapa 8 / 86. SDK 1.0 assigns new engines numbers above 33;
+the package's `layout.json` records the actual assignments. Preserve a
+previous build's assignments with
 `--layout <previous-package>/layout.json`, since projects store those numbers.
 Named presets live in each `definition.json`; command-line builds do not
 install them as device presets.
