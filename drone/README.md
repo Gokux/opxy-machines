@@ -26,8 +26,9 @@ The saws use PolyBLEP band-limiting. The filter is a Chamberlin state-variable
 lowpass, stable for every cutoff and damping it receives (f² + 2fq < 4), with
 saturating state so full resonance stays bounded. Each voice starts its LFOs at
 its own phase, so held chords drift apart. A cubic soft clip limits the output
-to a quarter of full scale (-12 dB), the declared output peak. Cutoff,
-resonance, Sub and Fifth smooth per sample.
+to a quarter of full scale (-12 dB), the declared output peak. Pitch is read
+once per 64-sample block. Cutoff, resonance, Sub and Fifth smooth per sample
+through block-prepared linear ramps.
 
 Presets: **Hum**, **Choir**, **Abyss**, **Storm** and **Pipe** (full resonance
 and fifth, the loudest of them).

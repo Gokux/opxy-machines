@@ -107,10 +107,11 @@ inline i32 oscillator(Voice& voice, const u32* increments, const i32* steps) {
     return result;
 }
 
+// Above half Volt the oscillators modulate each other, sample by sample.
 template <bool moving>
-inline void render_block(Voice& voice, opxy::Output output, const u32* increments, const i32* steps, i32 fm_step) {
+inline void render_modulated(Voice& voice, opxy::Output output, const u32* increments, const i32* steps, i32 fm_step) {
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        if (moving) voice.fm += fm_step;
+        voice.fm += fm_step;
         i32 mix = 0;
         mix += oscillator<0, moving>(voice, increments, steps);
         mix += oscillator<1, moving>(voice, increments, steps);
@@ -119,6 +120,33 @@ inline void render_block(Voice& voice, opxy::Output output, const u32* increment
         mix += oscillator<4, moving>(voice, increments, steps);
         output[i] = clip(mix);
     }
+}
+
+// Without cross-modulation the oscillators are independent: each adds the
+// whole block to the output in a loop of its own, where its few values keep
+// to registers, and a last pass clips the sum. A silent oscillator only keeps
+// its phase moving and its last sample current for when FM returns.
+inline void render_unmodulated(Voice& voice, opxy::Output output, const u32* increments, const i32* steps) {
+    for (unsigned i = 0; i != opxy::block_frames; ++i) output[i] = 0;
+    for (unsigned n = 0; n < 5; ++n) {
+        const u32 increment = increments[n];
+        u32 phase = voice.phases[n];
+        i32 gain = voice.gains[n];
+        const i32 step = steps[n];
+        if (gain || step) {
+            for (unsigned i = 0; i != opxy::block_frames; ++i) {
+                gain += step;
+                output[i] += mul15(negistor(phase, increment), gain >> 8);
+                phase += increment;
+            }
+        } else {
+            phase += increment * opxy::block_frames;
+        }
+        voice.outputs[n] = negistor(phase - increment, increment);
+        voice.phases[n] = phase;
+        voice.gains[n] = gain;
+    }
+    for (unsigned i = 0; i != opxy::block_frames; ++i) output[i] = clip(output[i]);
 }
 
 }
@@ -188,14 +216,16 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
         voice.initialized = 1;
     }
     const i32 fm_step = ramp(voice.fm, fm >> 8);
+    const bool modulated = fm_step != 0 || voice.fm != 0;
     i32 steps[5];
-    bool moving = fm_step != 0;
+    bool moving = false;
     for (unsigned n = 0; n < 5; ++n) {
         steps[n] = ramp(voice.gains[n], targets[n]);
         moving = moving || steps[n] != 0;
     }
-    if (moving) render_block<true>(voice, output, increments, steps, fm_step);
-    else render_block<false>(voice, output, increments, steps, fm_step);
+    if (!modulated) render_unmodulated(voice, output, increments, steps);
+    else if (moving) render_modulated<true>(voice, output, increments, steps, fm_step);
+    else render_modulated<false>(voice, output, increments, steps, fm_step);
 }
 
 } // namespace solar

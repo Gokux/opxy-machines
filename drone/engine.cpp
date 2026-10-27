@@ -75,9 +75,72 @@ inline u32 detuned(u32 increment, i32 amount) {
     return increment + static_cast<u32>(bend * 2);
 }
 
-// Q23 control state; a 93/32768 coefficient keeps ~8 ms smoothing.
-inline void smooth(i32& current, i32 target) {
-    current += floor_bits((target - current) * 93, 15);
+// Q23 control state follows its target by a 64-sample linear ramp per block,
+// the same ~8 ms time constant as a 93/32768 one-pole. Compute its slope once
+// per block; the audio loop only adds it. Snapping below 384 stays under one
+// Q15 step.
+inline i32 ramp(i32& current, i32 target) {
+    const i32 difference = target - current;
+    if (difference > -384 && difference < 384) { current = target; return 0; }
+    return floor_bits(difference * 43, 14);
+}
+
+// The block is rendered in passes over the output, which holds the Q15 mix
+// until the filter replaces it: few values stay live in each loop, so they
+// keep to registers. Loops work on local copies, since stores to the output
+// could alias the voice.
+
+// The centre and the two side saws at one level; one product for the three.
+inline void saws(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down) {
+    u32 a = phases[0], b = phases[1], c = phases[2];
+    for (unsigned i = 0; i != opxy::block_frames; ++i) {
+        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16);
+        a += centre; b += up; c += down;
+    }
+    phases[0] = a; phases[1] = b; phases[2] = c;
+}
+
+// The fifth saw at its smoothed Q23 level.
+inline void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
+    u32 p = phase;
+    i32 g = level;
+    for (unsigned i = 0; i != opxy::block_frames; ++i) {
+        g += step;
+        mix[i] += mul15(saw(p, increment), g >> 8);
+        p += increment;
+    }
+    phase = p; level = g;
+}
+
+// The sub sine an octave down at its smoothed Q23 level.
+inline void add_sub(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
+    u32 p = phase;
+    i32 g = level;
+    for (unsigned i = 0; i != opxy::block_frames; ++i) {
+        g += step;
+        mix[i] += mul15(sine(p), g >> 8);
+        p += increment;
+    }
+    phase = p; level = g;
+}
+
+// Chamberlin state-variable lowpass over the mix, in place; stable for every
+// table cutoff and damping (f^2 + 2fq < 4). Saturation bounds high resonance.
+// Q17 filter state with Q14 coefficients keeps resonance headroom without a
+// 64-bit saturating sum in the sample loop.
+inline void filter(opxy::Output mix, Voice& voice, i32 cutoff_step, i32 damping_step) {
+    i32 low = voice.low, band = voice.band, cutoff = voice.cutoff, damping = voice.damping;
+    for (unsigned i = 0; i != opxy::block_frames; ++i) {
+        cutoff += cutoff_step;
+        damping += damping_step;
+        const i32 f = cutoff >> 9, q = damping >> 9;
+        low = clamp17(low + floor_bits(f * band, 14));
+        const i32 damped = floor_bits(q * band, 14);
+        const i32 high = clamp17(mix[i] * 4 - low - damped - damped);
+        band = clamp17(band + floor_bits(f * high, 14));
+        mix[i] = clip(floor_bits(low, 2));
+    }
+    voice.low = low; voice.band = band; voice.cutoff = cutoff; voice.damping = damping;
 }
 }
 
@@ -126,6 +189,11 @@ inline void render(Voice& voice, Shared&, u32, opxy::Output output,
     const i32 upper = detune + multiply((sine(voice.lfos[1]) * 65536), drift);
     const i32 lower = -(detune + multiply((sine(voice.lfos[2]) * 65536), drift));
 
+    // Pitch is read once per block, like the controls.
+    const u32 base = pitch[0];
+    const u32 up = detuned(base, floor_bits(upper, 16));
+    const u32 down = detuned(base, floor_bits(lower, 16));
+
     if (!voice.initialized) {
         voice.cutoff = cutoff >> 8;
         voice.damping = damping >> 8;
@@ -133,36 +201,18 @@ inline void render(Voice& voice, Shared&, u32, opxy::Output output,
         voice.fifth = fifth >> 8;
         voice.initialized = 1;
     }
-    for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        smooth(voice.cutoff, cutoff >> 8);
-        smooth(voice.damping, damping >> 8);
-        smooth(voice.sub, sub >> 8);
-        smooth(voice.fifth, fifth >> 8);
-        const u32 base = pitch[i];
-        const u32 up = detuned(base, floor_bits(upper, 16));
-        const u32 down = detuned(base, floor_bits(lower, 16));
-        const u32 interval = base + (base >> 1);
-        const i32 mix = mul15(saw(voice.phases[0], base), SAW_LEVEL >> 16)
-                      + mul15(saw(voice.phases[1], up), SAW_LEVEL >> 16)
-                      + mul15(saw(voice.phases[2], down), SAW_LEVEL >> 16)
-                      + mul15(saw(voice.phases[3], interval), voice.fifth >> 8)
-                      + mul15(sine(voice.phases[4]), voice.sub >> 8);
-        // Chamberlin state-variable lowpass; stable for every table cutoff and
-        // damping (f^2 + 2fq < 4). Saturation bounds high resonance.
-        // Q17 filter state with Q14 coefficients keeps resonance headroom
-        // without a 64-bit saturating sum in the sample loop.
-        const i32 f = voice.cutoff >> 9, q = voice.damping >> 9;
-        voice.low = clamp17(voice.low + floor_bits(f * voice.band, 14));
-        const i32 damped = floor_bits(q * voice.band, 14);
-        const i32 high = clamp17(mix * 4 - voice.low - damped - damped);
-        voice.band = clamp17(voice.band + floor_bits(f * high, 14));
-        output[i] = clip(floor_bits(voice.low, 2));
-        voice.phases[0] += base;
-        voice.phases[1] += up;
-        voice.phases[2] += down;
-        voice.phases[3] += interval;
-        voice.phases[4] += base >> 1;
-    }
+    const i32 cutoff_step = ramp(voice.cutoff, cutoff >> 8);
+    const i32 damping_step = ramp(voice.damping, damping >> 8);
+    const i32 sub_step = ramp(voice.sub, sub >> 8);
+    const i32 fifth_step = ramp(voice.fifth, fifth >> 8);
+
+    saws(output, voice.phases, base, up, down);
+    // A silent fifth or sub only keeps its phase moving.
+    if (voice.fifth || fifth_step) add_fifth(output, voice.phases[3], base + (base >> 1), voice.fifth, fifth_step);
+    else voice.phases[3] += (base + (base >> 1)) * opxy::block_frames;
+    if (voice.sub || sub_step) add_sub(output, voice.phases[4], base >> 1, voice.sub, sub_step);
+    else voice.phases[4] += (base >> 1) * opxy::block_frames;
+    filter(output, voice, cutoff_step, damping_step);
 }
 
 } // namespace drone
