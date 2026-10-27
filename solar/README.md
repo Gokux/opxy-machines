@@ -8,12 +8,19 @@ description; no code or tables come from it. Read [engine.cpp](engine.cpp),
 [core.h](core.h) and [display.cpp](display.cpp) alongside the
 [engine API](https://github.com/etcetc000/open-xy/blob/staging/docs/api.md).
 
-| Encoder | Control | Alternate (press) |
+| Encoder | Page 1 | Page 2 |
 | --- | --- | --- |
 | 1 | Chord | Drift |
-| 2 | Volt | – |
+| 2 | Volt | Volt |
 | 3 | Mod | Flicker |
-| 4 | Mute | – |
+| 4 | Mute | Mute |
+
+A press of any encoder switches all four to the other page. Volt and Mute have
+no alternate, so page 2 shows them again and either page edits them. The
+header shows both pages in place: page 1 on top, page 2 under it; the page the
+encoders edit sits on the stepped bar at the stock header's size and the other
+is smaller and grey. A switch grows one row and shrinks the other in about
+0.15 s. Chord and Mute show their names, the continuous controls 0 to 100.
 
 | Control | Mapping |
 | --- | --- |
@@ -58,7 +65,7 @@ python sdk.py test --machine local/opxy-machines/solar
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [chords.h](chords.h) | Voicings and mute patterns, shared by sound and screen |
 | [tables.h](tables.h) | Negistor curve, semitone, Volt and Flicker tables |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Space station screen |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Space station screen and both header pages |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 5, page 85) and a long default amp release |
 
 A voice is 144 bytes; the definition allows 256 voices. Samples and
