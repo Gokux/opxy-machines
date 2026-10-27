@@ -134,7 +134,9 @@ inline void start(Voice& voice, Shared&, u32 owner) {
         voice.tolerance[n] = static_cast<i32>(next(voice.seed) >> 8) - 0x800000;  // about +-7 cents
         voice.gains[n] = 0;
     }
-    voice.light = voice.light_target = 0;
+    // The light starts at a level of its own, so Mod acts from the first block
+    // and does not wait a whole Flicker cycle (20 s at the slowest).
+    voice.light = voice.light_target = random_half(voice.seed);
     voice.light_clock = 0;
     voice.fm = 0;
     voice.initialized = 0;

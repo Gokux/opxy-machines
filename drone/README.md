@@ -37,9 +37,10 @@ turns per second, neighbours in opposite directions), Spread pulls them out of
 step as it detunes the saws, Motion sets the hover, Sub weighs the drone down
 towards its shadow, and the status LED flashes on each note start.
 
+The machine is published in the Open-XY catalog; to preview it from a local
+folder, see [Play in the browser](../README.md#play-in-the-browser).
+
 ```sh
-python sdk.py preview --source local/opxy-machines/drone --out local/drone-preview-001
-python tools/serve_harness.py --preview local/drone-preview-001
 python sdk.py test --machine local/opxy-machines/drone
 ```
 
@@ -49,7 +50,7 @@ python sdk.py test --machine local/opxy-machines/drone
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [tables.h](tables.h) | Sine, cutoff and LFO-rate tables |
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Quadcopter screen |
-| [machine.json](machine.json) | SDK version, kind, preferred identity (engine 1, page 84) and a long default amp release |
+| [machine.json](machine.json) | SDK version, kind, preferred identity (engine 36, page 84) and a long default amp release |
 
 A voice is 60 bytes; the definition allows 256 voices. The audio loop uses
 Q15 samples, Q17 filter state, Q14 filter coefficients and Q23 smoothed

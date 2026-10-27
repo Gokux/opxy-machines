@@ -38,14 +38,16 @@ such boxes.
 Presets: **Siren**, **Bird**, **Monster**, **Volley** and **Surf** (the
 manual's clean-noise recipe with slow AM).
 
-The screen is a megaphone. Sound arcs leave the horn, rippling with FM,
-blinking with AM and thickening with the Divider. Noise sprays specks, the lamp
-blinks with the LFO, bars show the held S&H steps, two LEDs show the fm and am
-switches, and the horn flashes on each note start.
+The screen is a transistor radio. Its tuning window shows the output wave
+with Mod, Divider, Noise and S&H, and the tuning needle stands at the Divider.
+The fm and am band buttons light with Mode, Rate turns the knob and blinks the
+LFO lamp, Octave pulls the telescopic antenna out (Hi) or in (Low), and the
+power LED flashes on each note start.
+
+The machine is published in the Open-XY catalog; to preview it from a local
+folder, see [Play in the browser](../README.md#play-in-the-browser).
 
 ```sh
-python sdk.py preview --source local/opxy-machines/papasrapa --out local/papasrapa-preview-001
-python tools/serve_harness.py --preview local/papasrapa-preview-001
 python sdk.py test --machine local/opxy-machines/papasrapa
 ```
 
@@ -54,7 +56,7 @@ python sdk.py test --machine local/opxy-machines/papasrapa
 | [definition.json](definition.json) | Controls, presets, resources and the display shape |
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [tables.h](tables.h) | LFO rates, shared by sound and screen |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Megaphone screen |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Transistor radio screen |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 8, page 86) and a long default amp release |
 
 A voice is 28 bytes; the definition allows 256 voices. Samples use Q15,

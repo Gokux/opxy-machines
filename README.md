@@ -6,10 +6,10 @@ Three drone synth machines for the OP-XY, written for the
 | Machine | Sound | Screen |
 | --- | --- | --- |
 | [Drone](drone/README.md) | Detuned saw stack, sub, fifth and a drifting resonant filter | A quadcopter |
-| [Solar](solar/README.md) | Five free-running negistor saws per voice, light modulation and cross-FM, after the drone voices of the Elta Music Solar 42N | A sunset |
-| [Papa Srapa](papasrapa/README.md) | Two Schmitt-trigger oscillators: sirens, birds, monsters, volleys and surf, after the Solar's Papa Srapa voices | A megaphone |
+| [Solar](solar/README.md) | Five free-running negistor saws per voice, light modulation and cross-FM, after the drone voices of the Elta Music Solar 42N | A space station in the sun |
+| [Papa Srapa](papasrapa/README.md) | Two Schmitt-trigger oscillators: sirens, birds, monsters, volleys and surf, after the Solar's Papa Srapa voices | A transistor radio |
 
-All three target Open-XY SDK 1.0, with fixed-point C++ and greyscale
+All three target Open-XY SDK 1.3 on OP-XY OS 1.2.1, with fixed-point C++ and greyscale
 artwork in the stock screens' style. Each folder's README lists its controls,
 presets and mappings.
 
@@ -35,14 +35,19 @@ Commands run from the SDK checkout; on macOS use `python3`, and add
 
 ## Play in the browser
 
+The three machines are published in the Open-XY catalog, whose IDs
+`sdk.py preview` keeps for the catalog: it refuses to preview `drone`, `solar`
+or `papasrapa` from a local folder. To audition one, copy its folder, give the
+copy another `id` in `definition.json` and the same prefix in
+`panel.svg.fragment`, then preview the copy:
+
 ```sh
-python sdk.py preview --source local/opxy-machines/solar --out local/solar-preview-001
+python sdk.py preview --source <copy> --out local/solar-preview-001
 python tools/serve_harness.py --preview local/solar-preview-001
 ```
 
-Open http://127.0.0.1:8917/, enable audio and play. Use
-`local/opxy-machines/drone` or `local/opxy-machines/papasrapa` for the others,
-and a fresh `--out` folder after each edit.
+Open http://127.0.0.1:8917/, enable audio and play. Use a fresh `--out`
+folder after each edit.
 
 ## Check the machines
 
@@ -53,10 +58,11 @@ python sdk.py test --machine local/opxy-machines/drone --machine local/opxy-mach
 This validates metadata and artwork, builds previews, runs each machine's
 sound and display tests and estimates CPU cost on the host. Add `--firmware` to compile
 all three alongside the bundled machines with the pinned Blackfin tools.
-The repository's CI runs both checks against a pinned SDK 1.0 commit, checks
+The repository's CI runs both checks against a pinned SDK commit, checks
 sound arithmetic with undefined-behavior sanitization, and requires each
 machine's CPU estimate to stay below 20,000 instructions per voice block.
-These are host estimates; they do not measure device cycles or polyphony.
+These are host estimates and vary between runs; they do not measure device
+cycles or polyphony. The catalog entries carry hardware measurements.
 
 Audio uses Q15 samples internally and returns Q31 buffers. Oscillator phases
 remain 32-bit. Drone keeps extra filter precision; Solar prepares gain and FM
@@ -72,7 +78,7 @@ to install the pinned toolchain and supply your own stock OS. From the SDK
 checkout, pass the machine folders directly:
 
 ```sh
-python sdk.py build --machine local/opxy-machines/drone --machine local/opxy-machines/solar --machine local/opxy-machines/papasrapa --stock-os <private>/stock-1.2.0/os.ldr --out <private>/builds/drones-001
+python sdk.py build --machine local/opxy-machines/drone --machine local/opxy-machines/solar --machine local/opxy-machines/papasrapa --stock-os <private>/stock-1.2.1/os.ldr --out <private>/builds/drones-001
 ```
 
 Replace `<private>` with a folder outside every checkout, for example
@@ -81,15 +87,17 @@ Replace `<private>` with a folder outside every checkout, for example
 folder for every build. Firmware, stock content and firmware-containing
 packages must stay outside checkouts, including ignored `local/` folders.
 
-The manifests retain the original identity requests: Drone engine 1 / page 84,
-Solar 5 / 85, Papa Srapa 8 / 86. SDK 1.0 assigns new engines numbers above 33;
-the package's `layout.json` records the actual assignments. Preserve a
+The manifests request Drone engine 36 / page 84, Solar 5 / 85 and Papa Srapa
+8 / 86. Drone asked for engine 1 before OS 1.2.1, where Ring Mod's fixed
+effect 1 now holds that number too. A build gives a new machine its request
+when free, else numbers above 33; the package's `layout.json` records the
+actual assignments. Preserve a
 previous build's assignments with
 `--layout <previous-package>/layout.json`, since projects store those numbers.
-Each machine includes `presets/default.json`, its device starting sound. The
-SDK's repository-preset support installs this file under
-`content/presets/<id>/default.json` in browser and command-line packages.
-The other named patches in `definition.json` remain browser presets.
+Each machine ships its presets in `presets/`, which `machine.json` names:
+`default.json`, its device starting sound, and one file per named patch. The
+Open-XY builder installs them as `content/presets/<id>/<name>.json`;
+`sdk.py build` packages leave them out, so copy the folder there yourself.
 
 Solar's Chord/Mute and Papa Srapa's Range/Mode/Octave show their choice names
 in the device header: each display writes them with `opxy::draw::header`

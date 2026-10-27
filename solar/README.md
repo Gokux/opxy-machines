@@ -37,15 +37,18 @@ follow it.
 
 Presets: **Classic**, **Dusk**, **Neon** and **Eclipse**.
 
-The screen is a sunset. Volt lowers the sun behind the horizon and, past half,
-roughens its corona and bends the waveform as the oscillators cross-modulate.
-Mod and Flicker make the corona flicker. The five oscillators are status LEDs on
-a pitch staff: Chord places them, Mute dims them, Drift sways them, and they
-flash on each note start.
+The screen is a space station in the sun. Its five wing pairs are the
+oscillators: Chord lights one to four cells each side, outward with pitch, Mute
+darkens a pair, and the wings flash on each note start. Volt lowers the orbit
+towards the Earth; past half the station shivers slightly with the cross-FM.
+Drift rocks it slowly. Mod ripples the sun's corona and adds radiation noise
+over the picture, like a camera sensor in a radiation field; Flicker makes both
+pulse. Each note starts its light at a level of its own, so Mod acts at once.
+
+The machine is published in the Open-XY catalog; to preview it from a local
+folder, see [Play in the browser](../README.md#play-in-the-browser).
 
 ```sh
-python sdk.py preview --source local/opxy-machines/solar --out local/solar-preview-001
-python tools/serve_harness.py --preview local/solar-preview-001
 python sdk.py test --machine local/opxy-machines/solar
 ```
 
@@ -55,7 +58,7 @@ python sdk.py test --machine local/opxy-machines/solar
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [chords.h](chords.h) | Voicings and mute patterns, shared by sound and screen |
 | [tables.h](tables.h) | Negistor curve, semitone, Volt and Flicker tables |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Sunset screen |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Space station screen |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 5, page 85) and a long default amp release |
 
 A voice is 144 bytes; the definition allows 256 voices. Samples and

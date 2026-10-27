@@ -3,12 +3,12 @@
 
 namespace papasrapa {
 // Matches resources.display in definition.json: paths, points, nodes, texts, palette.
-// A megaphone: three sound arcs and the sample-and-hold bars as outlines, then
-// the horn, the fm and am switch LEDs, twelve noise specks and the LFO lamp.
-using Frame = opxy::draw::Frame<4, 64, 20, 0, 9>;
+// A transistor radio: the output wave in the tuning window, the tuning
+// needle, the fm and am band buttons, the Rate knob's pointer, the LFO lamp,
+// the power LED and four telescopic antenna segments.
+using Frame = opxy::draw::Frame<1, 64, 11, 0, 9>;
 struct DisplayState {
-    opxy::u32 phase, lfo_phase, seed, previous_event, track, initialized;
+    opxy::u32 scroll, lfo_phase, seed, held, frames, previous_event, track, initialized;
     opxy::i32 flash_age;
-    opxy::u32 bars[4];   // sixteen held heights, one byte each
 };
 }

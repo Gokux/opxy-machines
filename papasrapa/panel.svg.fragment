@@ -1,44 +1,100 @@
 <g id="papasrapa_panel">
-    <!-- Megaphone: handle and mouthpiece behind the horn, rim in front. -->
-    <path d="M96,124 L104,150 L114,150 L108,122 Z" fill="#323232" stroke="#969696" stroke-width="1"/>
-    <path d="M66,110 L80,108 L80,128 L66,126 Z" fill="#323232" stroke="#969696" stroke-width="1"/>
-    <path id="papasrapa_node_4" transform="matrix(1 0 0 1 640 120)" d="M-30,-12 L40,-40 L40,40 L-30,12 Z" fill="#4B4B4B" stroke="#CDCDCD" stroke-width="1"/>
-    <path d="M150,77 L156,77 L156,159 L150,159 Z" fill="#323232" stroke="#969696" stroke-width="1"/>
-    <!-- Exactly 64 vertices: Move, 63 Lines, Close; coordinates change in place. -->
-    <path id="papasrapa_node_0" transform="matrix(1 0 0 1 640 120)" d="M15.2968,-12.8844 L15.8629,-12.1806 L16.3967,-11.4521 L16.897,-10.7001 L17.3628,-9.9264 L17.7932,-9.1324 L18.1874,-8.3198 L18.5444,-7.4903 L18.8637,-6.6454 L19.1445,-5.787 L19.3862,-4.9168 L19.5884,-4.0366 L19.7507,-3.1481 L19.8727,-2.2533 L19.9541,-1.3538 L19.9949,-0.4516 L19.9949,0.4516 L19.9541,1.3538 L19.8727,2.2533 L19.7507,3.1481 L19.5884,4.0366 L19.3862,4.9168 L19.1445,5.787 L18.8637,6.6454 L18.5444,7.4903 L18.1874,8.3198 L17.7932,9.1324 L17.3628,9.9264 L16.897,10.7001 L16.3967,11.4521 L15.8629,12.1806 L15.2968,12.8844 L13.7672,11.5959 L14.2766,10.9626 L14.757,10.3069 L15.2073,9.6301 L15.6265,8.9338 L16.0139,8.2192 L16.3686,7.4878 L16.69,6.7412 L16.9773,5.9809 L17.23,5.2083 L17.4476,4.4251 L17.6296,3.6329 L17.7756,2.8333 L17.8854,2.0279 L17.9587,1.2184 L17.9954,0.4064 L17.9954,-0.4064 L17.9587,-1.2184 L17.8854,-2.0279 L17.7756,-2.8333 L17.6296,-3.6329 L17.4476,-4.4251 L17.23,-5.2083 L16.9773,-5.9809 L16.69,-6.7412 L16.3686,-7.4878 L16.0139,-8.2192 L15.6265,-8.9338 L15.2073,-9.6301 L14.757,-10.3069 L14.2766,-10.9626 L13.7672,-11.5959 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
-    <path id="papasrapa_node_1" transform="matrix(1 0 0 1 640 120)" d="M26.0046,-21.9034 L26.967,-20.7071 L27.8743,-19.4685 L28.7248,-18.1902 L29.5167,-16.8749 L30.2485,-15.5251 L30.9185,-14.1437 L31.5255,-12.7334 L32.0683,-11.2972 L32.5456,-9.8379 L32.9565,-8.3586 L33.3003,-6.8622 L33.5761,-5.3518 L33.7835,-3.8306 L33.922,-2.3015 L33.9913,-0.7677 L33.9913,0.7677 L33.922,2.3015 L33.7835,3.8306 L33.5761,5.3518 L33.3003,6.8622 L32.9565,8.3586 L32.5456,9.8379 L32.0683,11.2972 L31.5255,12.7334 L30.9185,14.1437 L30.2485,15.5251 L29.5167,16.8749 L28.7248,18.1902 L27.8743,19.4685 L26.967,20.7071 L26.0046,21.9034 L24.4749,20.615 L25.3807,19.489 L26.2346,18.3233 L27.0351,17.1202 L27.7805,15.8822 L28.4692,14.6119 L29.0998,13.3117 L29.6711,11.9844 L30.1819,10.6327 L30.6311,9.2592 L31.0179,7.8669 L31.3415,6.4586 L31.6011,5.037 L31.7963,3.6052 L31.9266,2.1661 L31.9918,0.7225 L31.9918,-0.7225 L31.9266,-2.1661 L31.7963,-3.6052 L31.6011,-5.037 L31.3415,-6.4586 L31.0179,-7.8669 L30.6311,-9.2592 L30.1819,-10.6327 L29.6711,-11.9844 L29.0998,-13.3117 L28.4692,-14.6119 L27.7805,-15.8822 L27.0351,-17.1202 L26.2346,-18.3233 L25.3807,-19.489 L24.4749,-20.615 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
-    <path id="papasrapa_node_2" transform="matrix(1 0 0 1 640 120)" d="M36.7124,-30.9224 L38.071,-29.2335 L39.352,-27.4849 L40.5527,-25.6803 L41.6707,-23.8234 L42.7037,-21.9178 L43.6497,-19.9676 L44.5066,-17.9766 L45.2728,-15.949 L45.9467,-13.8888 L46.5269,-11.8004 L47.0122,-9.6878 L47.4016,-7.5555 L47.6944,-5.4078 L47.8899,-3.2491 L47.9878,-1.0838 L47.9878,1.0838 L47.8899,3.2491 L47.6944,5.4078 L47.4016,7.5555 L47.0122,9.6878 L46.5269,11.8004 L45.9467,13.8888 L45.2728,15.949 L44.5066,17.9766 L43.6497,19.9676 L42.7037,21.9178 L41.6707,23.8234 L40.5527,25.6803 L39.352,27.4849 L38.071,29.2335 L36.7124,30.9224 L35.1827,29.634 L36.4847,28.0154 L37.7123,26.3397 L38.863,24.6103 L39.9344,22.8307 L40.9244,21.0046 L41.831,19.1356 L42.6522,17.2276 L43.3865,15.2844 L44.0323,13.3101 L44.5883,11.3087 L45.0533,9.2842 L45.4266,7.2407 L45.7071,5.1825 L45.8945,3.1137 L45.9883,1.0386 L45.9883,-1.0386 L45.8945,-3.1137 L45.7071,-5.1825 L45.4266,-7.2407 L45.0533,-9.2842 L44.5883,-11.3087 L44.0323,-13.3101 L43.3865,-15.2844 L42.6522,-17.2276 L41.831,-19.1356 L40.9244,-21.0046 L39.9344,-22.8307 L38.863,-24.6103 L37.7123,-26.3397 L36.4847,-28.0154 L35.1827,-29.634 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
-    <!-- Switch LEDs with fm (ripple) and am (pulse) glyphs. -->
-    <circle id="papasrapa_node_5" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="3.5" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <circle id="papasrapa_node_6" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="3.5" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path d="M80,186 L84,182 L88,190 L92,182 L96,186" fill="none" stroke="#7D7D7D" stroke-width="1"/>
-    <path d="M110,186 L114,186 L114,180 L122,180 L122,186 L126,186" fill="none" stroke="#7D7D7D" stroke-width="1"/>
-    <!-- Noise specks. -->
-    <circle id="papasrapa_node_7" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_8" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_9" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_10" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_11" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_12" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_13" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_14" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_15" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_16" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_17" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <circle id="papasrapa_node_18" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1.5" fill="#CDCDCD" stroke="none"/>
-    <!-- LFO lamp in its housing; sample-and-hold bars on a baseline. -->
-    <circle cx="372" cy="84" r="16" fill="none" stroke="#4B4B4B" stroke-width="1"/>
-    <circle id="papasrapa_node_19" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="11" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
-    <path d="M312,176 L432,176" fill="none" stroke="#4B4B4B" stroke-width="1"/>
-    <path id="papasrapa_node_3" transform="matrix(1 0 0 1 640 120)" d="M-56,0 L-55,0 L-54,0 L-53,0 L-52,0 L-51,0 L-50,0 L-49,0 L-48,0 L-47,0 L-46,0 L-45,0 L-44,0 L-43,0 L-42,0 L-41,0 L-40,0 L-39,0 L-38,0 L-37,0 L-36,0 L-35,0 L-34,0 L-33,0 L-32,0 L-31,0 L-30,0 L-29,0 L-28,0 L-27,0 L-26,0 L-25,0 L-24,0 L-23,0 L-22,0 L-21,0 L-20,0 L-19,0 L-18,0 L-17,0 L-16,0 L-15,0 L-14,0 L-13,0 L-12,0 L-11,0 L-10,0 L-9,0 L-8,0 L-7,0 L-6,0 L-5,0 L-4,0 L-3,0 L-2,0 L-1,0 L0,0 L1,0 L2,0 L3,0 L4,0 L5,0 L6,0 L7,0 Z" fill="none" stroke="#AFAFAF" stroke-width="1"/>
-    <!-- Palette donors: the stock grey steps, offscreen. -->
-    <circle id="papasrapa_palette_0" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#000000" stroke="#000000" stroke-width="1"/>
-    <circle id="papasrapa_palette_1" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#191919" stroke="#191919" stroke-width="1"/>
-    <circle id="papasrapa_palette_2" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#323232" stroke="#323232" stroke-width="1"/>
-    <circle id="papasrapa_palette_3" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#4B4B4B" stroke="#4B4B4B" stroke-width="1"/>
-    <circle id="papasrapa_palette_4" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#646464" stroke="#646464" stroke-width="1"/>
-    <circle id="papasrapa_palette_5" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#7D7D7D" stroke="#7D7D7D" stroke-width="1"/>
-    <circle id="papasrapa_palette_6" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#969696" stroke="#969696" stroke-width="1"/>
-    <circle id="papasrapa_palette_7" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#AFAFAF" stroke="#AFAFAF" stroke-width="1"/>
-    <circle id="papasrapa_palette_8" transform="matrix(1 0 0 1 640 120)" cx="0" cy="0" r="1" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
+    <!-- Handle, body, tuning window and its scale, speaker grill, knob and band marks. -->
+    <path d="M163.5,69.75 L163.5,52.75 L166.9,49.35 L313.1,49.35 L316.5,52.75 L316.5,69.75 L311.4,69.75 L311.4,54.45 L168.6,54.45 L168.6,69.75 Z" fill="#000000" stroke="#969696" stroke-width="0.5"/>
+    <path d="M124.4,69.75 L355.6,69.75 L362.4,76.55 L362.4,190.45 L355.6,197.25 L124.4,197.25 L117.6,190.45 L117.6,76.55 Z" fill="#000000" stroke="#CDCDCD" stroke-width="0.6"/>
+    <path d="M136.3,85.05 L343.7,85.05 L343.7,129.25 L136.3,129.25 Z" fill="#000000" stroke="#969696" stroke-width="0.5"/>
+    <path d="M144.8,121.6 L144.8,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M156.7,125 L156.7,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M168.6,125 L168.6,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M180.5,125 L180.5,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M192.4,121.6 L192.4,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M204.3,125 L204.3,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M216.2,125 L216.2,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M228.1,125 L228.1,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M240,121.6 L240,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M251.9,125 L251.9,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M263.8,125 L263.8,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M275.7,125 L275.7,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M287.6,121.6 L287.6,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M299.5,125 L299.5,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M311.4,125 L311.4,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M323.3,125 L323.3,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <path d="M335.2,121.6 L335.2,128.4" fill="none" stroke="#646464" stroke-width="0.4"/>
+    <circle cx="139.7" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="149.05" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="158.4" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="167.75" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="177.1" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="186.45" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="195.8" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="205.15" cy="146.25" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="139.7" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="149.05" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="158.4" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="167.75" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="177.1" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="186.45" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="195.8" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="205.15" cy="155.6" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="139.7" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="149.05" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="158.4" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="167.75" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="177.1" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="186.45" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="195.8" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="205.15" cy="164.95" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="139.7" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="149.05" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="158.4" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="167.75" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="177.1" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="186.45" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="195.8" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="205.15" cy="174.3" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="139.7" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="149.05" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="158.4" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="167.75" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="177.1" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="186.45" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="195.8" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="205.15" cy="183.65" r="1.36" fill="#000000" stroke="#7D7D7D" stroke-width="0.4"/>
+    <circle cx="309.7" cy="164.95" r="20.4" fill="#000000" stroke="#CDCDCD" stroke-width="0.6"/>
+    <path d="M292.8709,181.7792 L290.4667,184.1833" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M287.0648,172.3046 L283.8313,173.3552" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M286.193,161.2268 L282.8349,160.695" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M290.4454,150.9607 L287.6948,148.9623" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M298.8951,143.744 L297.3515,140.7146" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M309.7,141.15 L309.7,137.75" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M320.5049,143.744 L322.0485,140.7146" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M328.9546,150.9607 L331.7052,148.9623" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M333.207,161.2268 L336.5651,160.695" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M332.3352,172.3046 L335.5687,173.3552" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M326.5291,181.7792 L328.9333,184.1833" fill="none" stroke="#7D7D7D" stroke-width="0.4"/>
+    <path d="M258.7,154.75 L259.55,157.5386 L260.4,157.7644 L261.25,154.3152 L262.1,151.3657 L262.95,154.1001 L263.8,158.1064 L264.65,154.75 L265.5,151.4905 L266.35,156.954 L267.2,155.8213 L268.05,151.5592 L268.9,157.859 L269.75,153.0815 L270.6,154.75" fill="none" stroke="#969696" stroke-width="0.5"/>
+    <path d="M258.7,176.85 L261.25,176.85 L261.25,171.75 L263.8,171.75 L263.8,176.85 L266.35,176.85 L266.35,171.75 L268.9,171.75 L268.9,176.85 L271.45,176.85" fill="none" stroke="#969696" stroke-width="0.5"/>
+    <circle cx="342" cy="71.45" r="2.125" fill="#000000" stroke="#969696" stroke-width="0.5"/>
+    <!-- Wave (64 distinct points), needle, band buttons, knob pointer, LFO lamp, power LED, antenna. -->
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_0" d="M-58,13 L-56.1587,0.01 L-54.3175,0 L-52.4762,0.01 L-50.6349,0 L-48.7937,0.01 L-46.9524,0 L-45.1111,0.01 L-43.2698,0 L-41.4286,0.01 L-39.5873,0 L-37.746,0.01 L-35.9048,0 L-34.0635,0.01 L-32.2222,0 L-30.381,0.01 L-28.5397,0 L-26.6984,0.01 L-24.8571,0 L-23.0159,0.01 L-21.1746,0 L-19.3333,0.01 L-17.4921,0 L-15.6508,0.01 L-13.8095,0 L-11.9683,0.01 L-10.127,0 L-8.2857,0.01 L-6.4444,0 L-4.6032,0.01 L-2.7619,0 L-0.9206,0.01 L0.9206,0 L2.7619,0.01 L4.6032,0 L6.4444,0.01 L8.2857,0 L10.127,0.01 L11.9683,0 L13.8095,0.01 L15.6508,0 L17.4921,0.01 L19.3333,0 L21.1746,0.01 L23.0159,0 L24.8571,0.01 L26.6984,0 L28.5397,0.01 L30.381,0 L32.2222,0.01 L34.0635,0 L35.9048,0.01 L37.746,0 L39.5873,0.01 L41.4286,0 L43.2698,0.01 L45.1111,0 L46.9524,0.01 L48.7937,0 L50.6349,0.01 L52.4762,0 L54.3175,0.01 L56.1587,0 L58,13 Z" fill="none" stroke="#CDCDCD" stroke-width="0.35"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_1" d="M-0.4,-24 L0.4,-24 L0.4,24 L-0.4,24 Z" fill="#AFAFAF" stroke="none"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_2" d="M-11.5,-8 L11.5,-8 L13,-6.5 L13,6.5 L11.5,8 L-11.5,8 L-13,6.5 L-13,-6.5 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="0.5"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_3" d="M-11.5,-8 L11.5,-8 L13,-6.5 L13,6.5 L11.5,8 L-11.5,8 L-13,6.5 L-13,-6.5 Z" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="0.5"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_4" d="M-0.8,-4 L0.8,-4 L0.6,-21 L-0.6,-21 Z" fill="#CDCDCD" stroke="none"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_5" cx="0" cy="0" r="2.4" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="0.4"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_6" cx="0" cy="0" r="2" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="0.4"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_7" d="M-0.9,-14 L0.9,-14 L0.9,0 L-0.9,0 Z" fill="#AFAFAF" stroke="none"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_8" d="M-0.7,-14 L0.7,-14 L0.7,0 L-0.7,0 Z" fill="#AFAFAF" stroke="none"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_9" d="M-0.55,-14 L0.55,-14 L0.55,0 L-0.55,0 Z" fill="#AFAFAF" stroke="none"/>
+    <path transform="matrix(1 0 0 1 640 120)" id="papasrapa_node_10" d="M-0.4,-14 L0.4,-14 L0.4,0 L-0.4,0 Z" fill="#AFAFAF" stroke="none"/>
+    <!-- Palette donors: the stock grey steps. -->
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_0" cx="0" cy="0" r="1" fill="#000000" stroke="#000000" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_1" cx="0" cy="0" r="1" fill="#191919" stroke="#191919" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_2" cx="0" cy="0" r="1" fill="#323232" stroke="#323232" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_3" cx="0" cy="0" r="1" fill="#4B4B4B" stroke="#4B4B4B" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_4" cx="0" cy="0" r="1" fill="#646464" stroke="#646464" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_5" cx="0" cy="0" r="1" fill="#7D7D7D" stroke="#7D7D7D" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_6" cx="0" cy="0" r="1" fill="#969696" stroke="#969696" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_7" cx="0" cy="0" r="1" fill="#AFAFAF" stroke="#AFAFAF" stroke-width="1"/>
+    <circle transform="matrix(1 0 0 1 640 120)" id="papasrapa_palette_8" cx="0" cy="0" r="1" fill="#CDCDCD" stroke="#CDCDCD" stroke-width="1"/>
 </g>

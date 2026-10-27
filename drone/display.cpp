@@ -85,7 +85,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 sway = floor_q10(amplitude * 3 / 2 * wave((((state.hover >> 3) * 5) >> 8) & 255));
     // Altitude 1 without Sub down to 0.3: lower is slightly smaller and nearer its shadow.
     const i32 altitude = 1024 - sub * 7 / 10;
-    const i32 scale = 970 + altitude * 80 / 1024;
+    const i32 scale = (970 + altitude * 80 / 1024) * 92 / 100;   // drawn at 92 %, clear of the edges
     const i32 cx = 240 * unit + sway, cy = 108 * unit + bob;
     const i32 sx = 240 * unit + sway + (6 + altitude * 18 / 1024) * unit;
     const i32 sy = 108 * unit + (6 + altitude * 18 / 1024) * unit;

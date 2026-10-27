@@ -1,7 +1,6 @@
 #include "display.h"
 #include <opxy/q31.hpp>
 #include "chords.h"
-#include "tables.h"
 
 namespace solar {
 namespace {
@@ -10,54 +9,42 @@ using opxy::u32;
 using namespace opxy::draw;
 
 // Node layout; artwork IDs solar_node_N follow it.
-enum { corona = 0, wave = 1, sun = 2, leds = 3 };
-const i32 settled = 4096;   // flash age past its decay, Q10 seconds
-// sin(2 pi i / 64), Q10.
-const i32 ring[64] = {
-    0, 100, 200, 297, 392, 483, 569, 650, 724, 792, 851, 903, 946, 980, 1004, 1019,
-    1024, 1019, 1004, 980, 946, 903, 851, 792, 724, 650, 569, 483, 392, 297, 200, 100,
-    0, -100, -200, -297, -392, -483, -569, -650, -724, -792, -851, -903, -946, -980, -1004, -1019,
-    -1024, -1019, -1004, -980, -946, -903, -851, -792, -724, -650, -569, -483, -392, -297, -200, -100,
-};
+enum { corona = 0, sun = 1, truss = 2, lattice = 3, core = 4, modules = 5, radiators = 7, masts = 9,
+       cells = 14, speckles = 54 };
+const u32 speckle_count = 32;
+const u32 levels = 4;                       // cells per wing side
+const i32 settled = 4096;                   // flash age past its decay, Q10 seconds
+const i32 sun_x = 66, sun_y = 66;           // pixels
+const i32 station_x = 300;                  // pixels
+const i32 wing_x[5] = {-96, -48, 0, 48, 96};
 // Flicker 0..1 in 16 steps: light changes per second, Q10 (0.05..40 Hz, as the engine).
 const i32 flicker_hz[17] = {51, 78, 118, 179, 272, 414, 628, 954, 1448, 2199, 3340, 5072, 7702, 11696, 17761, 26972, 40960};
 
 inline i32 control(i32 word) { return clamp(word, 0, opxy::q31::maximum) >> 21; }  // Q10
 
-inline i32 curve(u32 index) {   // the engine's negistor curve, Q10
-    const i32 s = solar_charge[index & 255];
-    return s / 2097152 - (s < 0 && s % 2097152 != 0);
-}
-
-// A star of 32 rays: spikes sets their length, jitter roughens them with the
-// seed. turn, spikes, jitter and seed are quantized and form the key.
-inline void corona_path(Frame::path_type& path, u32 turn, u32 spikes, u32 jitter, u32 seed) {
-    const u32 key = 1 + turn + 64 * (spikes + 32 * (jitter + 16 * seed));
+// A thin ring round the sun, rippled six times; the ripple turns by `turn`
+// degrees and deepens to `depth` (0..7) quarter pixels in brighter light.
+// The quantized inputs form the key.
+inline void corona_path(Frame::path_type& path, u32 turn, u32 depth) {
+    const u32 key = 1 + turn + 360 * depth;
     if (path.key == key) return;
     for (u32 i = 0; i < Frame::point_count; ++i) {
-        const i32 rough = static_cast<i32>(((i * 2654435761u + seed * 40503u) >> 24) & 15) - 8;
-        const i32 r = (34 + (i & 1 ? 0 : static_cast<i32>(spikes))) * unit + rough * static_cast<i32>(jitter) * 128;
-        const u32 a = (i + turn) & 63;
-        path.points[i].x = floor_q10(r * ring[(a + 16) & 63]);
-        path.points[i].y = floor_q10(r * ring[a]);
+        const i32 angle = static_cast<i32>(i * 3600 / Frame::point_count);
+        const i32 r = 19 * unit + static_cast<i32>(2 + depth) * sine(static_cast<i32>((i * 6 * 3600 / Frame::point_count + turn * 10) % 3600)) / 4;
+        path.points[i] = Point{floor_q10(r * sine(angle)), floor_q10(-r * sine(angle + 900))};
     }
     path.key = key;
 }
 
-// Negistor periods (in sixteenths) along a 120-pixel baseline, 65536 per
-// cycle; Volt slows them, FM bends them.
-inline void wave_path(Frame::path_type& path, u32 periods, u32 bend, u32 scroll, u32 time) {
-    const u32 key = 1 + scroll + 64 * (periods + 64 * (bend + 8 * time));
-    if (path.key == key) return;
-    for (u32 i = 0; i < Frame::point_count; ++i) {
-        const u32 cycles = i * periods * 4096 / 63 + scroll * 1024
-            + static_cast<u32>(static_cast<i32>(bend) * ring[(i * 5 + time) & 63] * 2);
-        const i32 y = (i == 0 || i + 1 == Frame::point_count) ? 0 : -12 * curve(cycles >> 8);
-        path.points[i].x = (static_cast<i32>(i) * 120 / 63 - 60) * unit;
-        path.points[i].y = y;
+// A part of the station at (dx, dy) pixels from its centre, turned with it.
+struct Station {
+    i32 x, y;        // centre, Q10 pixels
+    Turn turn;
+    void put(Frame& frame, u32 node, i32 dx, i32 dy, u32 shade, Paint paint) const {
+        place(frame, node, x + dx * turn.cos - dy * turn.sin, y + dx * turn.sin + dy * turn.cos, unit, shade, paint);
+        opxy::draw::turn(frame, node, turn);
     }
-    path.key = key;
-}
+};
 } // namespace
 
 inline void display_reset(DisplayState& state) {
@@ -67,9 +54,12 @@ inline void display_reset(DisplayState& state) {
     state.flash_age = settled;
 }
 
-// Only screen work. Volt sets the sun and, past half, roughens the corona and
-// bends the wave as the oscillators cross-modulate. Mod and Flicker drive the
-// light; Chord places the LEDs on the staff, Mute dims them, Drift sways them.
+// Only screen work. Each wing pair is an oscillator: Chord lights one to four
+// cells each side, outward with pitch; Mute darkens the pair, and the wings
+// flash on each note start. Volt lowers the orbit towards the Earth; past
+// half the station shivers with the cross-FM. Drift rocks it slowly. Mod
+// thickens the radiation noise over the picture and ripples the corona;
+// Flicker makes the sun, the corona and the noise pulse.
 inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& frame) {
     const i32* chord = solar_chords[static_cast<u32>(clamp(input.slots[0], 0, opxy::q31::maximum)) >> 28];
     const i32 volt = control(input.slots[1]);
@@ -101,29 +91,58 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     }
     state.light += (state.light_target - state.light) * clamp(elapsed * hz / 160, 0, 1024) / 1024;
     if (input.reduced_motion) state.light = 0;
+    const i32 glow = mod ? (state.light + 512) * mod / 1024 : 0;   // 0..1024
 
+    // The sun and its corona, rippling deeper in the brighter light.
+    corona_path(frame.paths[0], (state.phase >> 14) % 360, static_cast<u32>(glow >> 7));
+    place(frame, corona, sun_x * unit, sun_y * unit, unit, glow > 512 ? 6 : 5, stroke);
+    place(frame, sun, sun_x * unit, sun_y * unit, unit, 8, fill_and_stroke);
+
+    // Volt lowers the orbit 30 pixels over its first half; past half the
+    // station shivers up to a pixel and a half. Drift rocks it up to 4
+    // degrees either way.
     const i32 fm = volt > 512 ? (volt - 512) * 2 : 0;   // Q10
-    const i32 sun_y = volt < 512 ? 84 + volt * 66 / 512 : 150 + (volt - 512) * 36 / 512;
-    const u32 spikes = static_cast<u32>(3 + ((mod * 12 * (state.light + 512)) >> 20));
-    const u32 jitter = static_cast<u32>(fm >> 7);
-    const u32 time = (state.phase >> 14) & 63;
-    corona_path(frame.paths[0], (state.phase >> 16) & 63, spikes, jitter, jitter ? (state.phase >> 12) & 255 : 0);
-    place(frame, corona, 340 * unit, sun_y * unit, unit, 6, stroke);
-    place(frame, sun, 340 * unit, sun_y * unit, unit, state.light > 0 && mod > 0 ? 8 : 7, fill_and_stroke);
+    const i32 noise = static_cast<i32>(((state.phase >> 11) * 2654435761u) >> 26) - 32;   // -32..31, every other frame
+    const i32 shiver = noise * fm / 1024;   // -32..31
+    const i32 rock = drift * 40 / 1024 * sine(static_cast<i32>((state.phase >> 9) % 3600)) / 1024;   // tenths
+    Station station;
+    station.x = station_x * unit + shiver * 48;
+    station.y = (100 + (volt < 512 ? volt : 512) * 30 / 512) * unit - shiver * 32;
+    station.turn = rotation(rock + shiver / 16);
 
-    const u32 periods = static_cast<u32>(volt < 512 ? 48 - volt * 24 / 512 : 24);   // sixteenths
-    wave_path(frame.paths[1], periods, static_cast<u32>(fm >> 7),
-              (state.phase >> 13) & 63, fm ? time : 0);
-    place(frame, wave, 124 * unit, 196 * unit, unit, 7, stroke);
+    station.put(frame, truss, 0, 0, 0, keep);
+    station.put(frame, lattice, 0, 0, 0, keep);
+    for (u32 w = 0; w < 5; ++w) station.put(frame, masts + w, wing_x[w], 0, 0, keep);
+    station.put(frame, core, 0, 0, 0, keep);
+    station.put(frame, modules, -21, 0, 0, keep);
+    station.put(frame, modules + 1, 21, 0, 0, keep);
+    station.put(frame, radiators, -116, 0, 0, keep);
+    station.put(frame, radiators + 1, 116, 0, 0, keep);
+    const bool flash = state.flash_age < 384;
+    for (u32 w = 0; w < 5; ++w) {
+        const u32 lit = 1 + static_cast<u32>((chord[w] + 24) * 3 / 48);   // 1..4 cells each side
+        const bool on = mute >> w & 1u;
+        for (u32 side = 0; side < 2; ++side) {
+            for (u32 l = 0; l < levels; ++l) {
+                const u32 shade = !on ? 1 : l < lit ? (flash ? 8 : 7) : 3;
+                const i32 dy = (11 + static_cast<i32>(l) * 8) * (side ? 1 : -1);
+                station.put(frame, cells + w * 8 + side * levels + l, wing_x[w], dy, shade, fill_and_stroke);
+            }
+        }
+    }
 
-    const i32 flash = state.flash_age < 384 ? (384 - state.flash_age) : 0;
-    for (u32 n = 0; n < 5; ++n) {
-        // Drift sways each LED on its own slow cycle, up to 3 pixels.
-        const i32 sway = drift * 3 * ring[((state.phase >> 12) + n * 13) & 63] / 1024;
-        const i32 y = (118 - chord[n] * 2) * unit + sway;
-        const bool lit = mute >> n & 1u;
-        place(frame, leds + n, (52 + static_cast<i32>(n) * 36) * unit, y,
-              unit + (lit ? flash : 0), lit ? 8 : 2, fill_and_stroke);
+    // Radiation noise: speckles over the whole picture, like a camera sensor
+    // in a radiation field. Mod sets how many, the light how many of those
+    // and how bright; new ones every frame.
+    const u32 hits = input.reduced_motion ? 0 : static_cast<u32>(mod * (768 + state.light / 2) / 1024 * 32 / 1024);
+    u32 seed = state.phase * 2654435761u + 1;
+    for (u32 k = 0; k < speckle_count; ++k) {
+        seed = seed * 1664525u + 1013904223u;
+        if (k >= hits) { hide(frame, speckles + k); continue; }
+        const i32 x = static_cast<i32>((seed >> 8 & 0xffffu) * 480 >> 16);
+        const i32 y = 22 + static_cast<i32>((seed >> 24) * 196 >> 8);
+        const u32 shade = (seed & 7u) == 0 && glow > 384 ? 8 : 3 + (seed >> 3 & 3u);
+        place(frame, speckles + k, x * unit, y * unit, unit, shade, fill_and_stroke);
     }
 
     // Chord and Mute by name wherever a position shows them; an empty header

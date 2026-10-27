@@ -19,6 +19,6 @@
   "resources": {
     "voiceBytes":144,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
     "outputPeakQ31":536870912,
-    "display":{"stateBytes":36,"stateAlignment":4,"paths":2,"points":64,"nodes":8,"texts":0,"palette":9}
+    "display":{"stateBytes":36,"stateAlignment":4,"paths":1,"points":64,"nodes":86,"texts":0,"palette":9}
   }
 }
