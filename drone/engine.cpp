@@ -162,7 +162,9 @@ inline void destroy(Voice&, Shared&, u32) {}
 
 // Parameters: 0 Spread, 1 Tone, 2 Motion, 3 Sub, then the alternates
 // 4 Reso (Tone), 5 Rate (Motion), 6 Fifth (Sub).
-inline void render(Voice& voice, Shared&, u32, opxy::Output output,
+// One definition in the SDK's voice translation unit; avoid an out-of-line
+// inline-function COMDAT section, which the browser linker does not accept.
+void render(Voice& voice, Shared&, u32, opxy::Output output,
                    opxy::Parameters parameters, opxy::Pitch pitch) {
     const i32 spread = nonnegative(parameters[0]);
     const i32 motion = nonnegative(parameters[2]);
