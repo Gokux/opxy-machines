@@ -10,7 +10,9 @@ permissions:
 
 env:
   # SDK 1.3 (OP-XY OS 1.2.1): update deliberately when adopting another SDK revision.
-  OPEN_XY_REF: b061cfe8bdd82b8c01082cade3ee0377d8e0e736
+  # etcetc000/open-xy#164's head: lets Drone page with seven parameters. Move to
+  # the merged staging commit once it lands.
+  OPEN_XY_REF: e0e225edbb9f0e2d3f0dc5d0c8743496eafebced
 
 jobs:
   machines:
