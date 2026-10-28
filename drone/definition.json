@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "drone",
   "name": "Drone",
+  "press": "page",
   "parameters": [
     {"id":"spread","label":"Spread","default":0.4,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
     {"id":"tone","label":"Tone","default":0.45,"mapping":{"kind":"exponential","minimum":40,"maximum":6000},"display":"percent"},
@@ -21,6 +22,6 @@
   "resources": {
     "voiceBytes":60,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
     "outputPeakQ31":536870912,
-    "display":{"stateBytes":36,"stateAlignment":4,"paths":4,"points":64,"nodes":24,"texts":0,"palette":9}
+    "display":{"stateBytes":44,"stateAlignment":4,"paths":4,"points":64,"nodes":32,"texts":16,"palette":9}
   }
 }
