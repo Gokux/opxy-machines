@@ -25,6 +25,13 @@ int main() {
             }
             display(state, input, frame);
             if (!opxy::draw::valid(frame)) return 1;
+            // Every shown antenna segment's tip, 14 px along it, stays at least
+            // 2 px below the header bar's lowest edge (38 px).
+            for (opxy::u32 s = antenna; s < bar; ++s) {
+                const opxy::draw::Node& node = frame.nodes[s];
+                if (node.x == opxy::draw::hidden_x * opxy::draw::unit) continue;
+                if (node.y - 14 * node.scale * node.cos / opxy::draw::unit < 40 * opxy::draw::unit) return 8;
+            }
         }
     }
     // With the alternates shown, the header names every Range, Mode and Octave

@@ -18,11 +18,13 @@ const i32 blur_hz = 12 * 1024; // above this the LFO lamp stops visibly blinking
 const i32 window_x = 240, window_y = 104;   // tuning window centre, pixels
 const i32 pivot_x = 360, pivot_y = 62;      // antenna foot, pixels
 const i32 segment_length = 13;              // pixels
-// The radio is drawn at 85 % about (240, 125), the artwork's centre: sx and sy
-// take an artwork position in pixels to the screen in Q10.
+// The radio is drawn at 85 % about (240, 125), the artwork's centre, and 4 px
+// down so the extended antenna clears the header bar, as the panel's static
+// artwork: sx and sy take an artwork position in pixels to the screen in Q10.
 const i32 zoom = 870;   // Q10
+const i32 drop = 4;     // pixels
 inline i32 sx(i32 x) { return 240 * unit + (x - 240) * zoom; }
-inline i32 sy(i32 y) { return 125 * unit + (y - 125) * zoom; }
+inline i32 sy(i32 y) { return (125 + drop) * unit + (y - 125) * zoom; }
 
 inline i32 control(i32 word) { return clamp(word, 0, opxy::q31::maximum) >> 21; }  // Q10
 
