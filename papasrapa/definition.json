@@ -2,6 +2,7 @@
   "schema": 1,
   "id": "papasrapa",
   "name": "Papa Srapa",
+  "press": "page",
   "parameters": [
     {"id":"rate","label":"Rate","default":0.35,"mapping":{"kind":"exponential","minimum":0.1,"maximum":20},"display":"percent"},
     {"id":"mod","label":"Mod","default":0.3,"mapping":{"kind":"linear","minimum":0,"maximum":1},"display":"percent"},
@@ -22,6 +23,6 @@
   "resources": {
     "voiceBytes":28,"voiceAlignment":4,"voiceCapacity":256,"sharedBytes":0,
     "outputPeakQ31":536870912,
-    "display":{"stateBytes":36,"stateAlignment":4,"paths":1,"points":64,"nodes":11,"texts":0,"palette":9}
+    "display":{"stateBytes":44,"stateAlignment":4,"paths":1,"points":64,"nodes":19,"texts":16,"palette":9}
   }
 }

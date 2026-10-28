@@ -9,8 +9,10 @@ using opxy::u32;
 using namespace opxy::draw;
 
 // Node layout; artwork IDs papasrapa_node_N follow it.
-enum { wave = 0, needle = 1, fm_button = 2, am_button = 3, pointer = 4, lfo_lamp = 5, power_led = 6, antenna = 7 };
-const u32 segments = 4;
+enum { wave = 0, needle = 1, fm_button = 2, am_button = 3, pointer = 4, lfo_lamp = 5, power_led = 6, antenna = 7,
+       bar = 11 };
+enum { title_text = 0, value_text = 4, grey_title_text = 8, grey_value_text = 12 };
+const u32 segments = 4, bar_steps = 8;
 const i32 settled = 4096;      // flash age past its decay, Q10 seconds
 const i32 blur_hz = 12 * 1024; // above this the LFO lamp stops visibly blinking
 const i32 window_x = 240, window_y = 104;   // tuning window centre, pixels
@@ -23,6 +25,62 @@ inline i32 sx(i32 x) { return 240 * unit + (x - 240) * zoom; }
 inline i32 sy(i32 y) { return 125 * unit + (y - 125) * zoom; }
 
 inline i32 control(i32 word) { return clamp(word, 0, opxy::q31::maximum) >> 21; }  // Q10
+
+// A press switches between two pages (definition.json "press": "page"): Rate,
+// Mod, Divider and Noise, then Range, Mode, Octave and S&H. The artwork covers
+// the stock header and draws both, page 1 on top and page 2 under it. The page
+// being edited is the stock header's size on its stepped bar; the other is
+// smaller and grey. A switch grows and shrinks the rows in place.
+const u32 pages[2][4] = {{0, 1, 2, 3}, {4, 5, 6, 7}};
+// Each slot's title as the stock header writes it, in lower case.
+const char* const titles[8] = {"rate", "mod", "divider", "noise", "range", "mode", "octave", "s h"};
+// Positions, Q10 pixels, on the stock header's columns: titles at each column's
+// left, values 65 pixels in. Each row's top with its page edited and with the
+// other page edited: page 2 sits under page 1's bar, or moves up 2 pixels into
+// its own. An edited row has the stock header's baselines on the bar; a grey
+// row has one baseline.
+const i32 column = 120 * unit, title_x = 5 * unit, value_x = 65 * unit, bar_step = 60 * unit;
+const i32 edited_top[2] = {0, 18 * unit}, grey_top[2] = {0, 20 * unit};
+const i32 title_y = 10 * unit, value_y = 17818, grey_y = 13 * unit;
+// The bright values are authored at the header's 20 px and the grey ones at
+// 13 px, so each rests at unit scale: 13 px is 666/1024 of 20, and 20 px is
+// 1575/1024 of 13.
+const i32 grow_scale = 666, shrink_scale = 1575;
+// A switch eases out exponentially: the distance left halves every 21 ms, so
+// it is within 1 % after 0.15 s, when it settles.
+const i32 settle = 154;               // 0.15 s, Q10
+const u32 halvings_per_q10 = 1496;    // Q15 halvings per Q10 second
+
+// 2^-halvings in Q16 for Q15 halvings, linear between whole ones.
+inline u32 remaining(u32 halvings) {
+    const u32 whole = halvings >> 15;
+    if (whole >= 16) return 0;
+    const u32 from = 65536u >> whole;
+    return from - (from >> 1) * (halvings & 32767u) / 32768u;
+}
+// Between where a switch settles and where it started: `left` (Q16) of the way back.
+inline i32 between(i32 end, i32 start, u32 left) {
+    return end + ((start - end) * static_cast<i32>(left >> 6) >> 10);
+}
+// An amount, 0 to 100 without a percent sign; the parameter keeps its precision.
+inline void amount(char* out, u32 capacity, i32 word) {
+    const u32 p = ((static_cast<u32>(clamp(word, 0, opxy::q31::maximum)) >> 10) * 100 + (1u << 20)) >> 21;
+    char digits[4];
+    u32 n = 0;
+    if (p >= 100) digits[n++] = '1';
+    if (p >= 10) digits[n++] = static_cast<char>('0' + p / 10 % 10);
+    digits[n++] = static_cast<char>('0' + p % 10);
+    digits[n] = 0;
+    copy(out, capacity, digits);
+}
+// A slot's value as the header rows show it: Range, Mode and Octave by name.
+inline void caption(char* out, u32 capacity, u32 slot, const opxy::draw::Input& input) {
+    const u32 word = static_cast<u32>(clamp(input.slots[slot], 0, opxy::q31::maximum));
+    if (slot == 4) copy(out, capacity, papasrapa_range_labels[word >> 30]);
+    else if (slot == 5) copy(out, capacity, papasrapa_mode_labels[word >> 29]);
+    else if (slot == 6) copy(out, capacity, papasrapa_octave_labels[word >> 30]);
+    else amount(out, capacity, input.slots[slot]);
+}
 
 struct Wave {
     u32 scroll, lfo_phase, held, frame;
@@ -61,6 +119,8 @@ inline void display_reset(DisplayState& state) {
     state.previous_event = state.track = state.initialized = 0;
     state.seed = 1;
     state.flash_age = settled;
+    state.page = 0;
+    state.since = settle;
 }
 
 // Only screen work. The tuning window shows the output wave with Mod,
@@ -76,6 +136,16 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 hz = (papasrapa_rate_hz[rate >> 6] + (papasrapa_rate_hz[(rate >> 6) + 1]
         - papasrapa_rate_hz[rate >> 6]) * (rate & 63) / 64) * (ten ? 10 : 1);
     const i32 elapsed = input.reduced_motion ? 0 : clamp(input.elapsed, 0, 102);
+
+    // The page being edited: page 2 once the first position shows an alternate.
+    // A switch on the same track animates; a track change or reduced motion jumps.
+    const u32 page = input.shown[0] >= 4 ? 1 : 0;
+    if (state.page && state.initialized && state.track == input.track && state.page != page + 1 && !input.reduced_motion)
+        state.since = 0;
+    else if (state.since < settle)
+        state.since += clamp(input.elapsed, 0, settle);
+    if (input.reduced_motion || state.since > settle) state.since = settle;
+    state.page = page + 1;
 
     // A snapshot (first frame or new track) never fabricates a note.
     if (!state.initialized || state.track != input.track || input.reduced_motion) {
@@ -131,14 +201,37 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         turn(frame, antenna + s, lean);
     }
 
-    // Range, Mode and Octave by name wherever a position shows them; an empty
-    // header keeps the stock value of the continuous controls.
+    // The stock header's values too: covered on the device, shown by previews
+    // that draw the stock header over the artwork.
     for (u32 i = 0; i < opxy::page_controls; ++i) {
         const u32 slot = input.shown[i] < opxy::parameter_slots ? input.shown[i] : i;
-        const u32 word = static_cast<u32>(clamp(input.slots[slot], 0, opxy::q31::maximum));
-        opxy::draw::header(frame, i, slot == 4 ? papasrapa_range_labels[word >> 30]
-                                   : slot == 5 ? papasrapa_mode_labels[word >> 29]
-                                   : slot == 6 ? papasrapa_octave_labels[word >> 30] : "");
+        caption(frame.header[i], sizeof(frame.header[i]), slot, input);
+    }
+
+    // The edited page's row grows from grey and the other's shrinks, each in
+    // place, and the bar moves between them. The bright text draws the row the
+    // bar is nearer, so the two sets trade rows halfway through.
+    const u32 left = state.since >= settle ? 0 : remaining(static_cast<u32>(state.since) * halvings_per_q10);
+    const u32 other = 1 - page, bright = left > (1u << 15) ? other : page;
+    const i32 edited = edited_top[page], was = grey_top[page], grey = grey_top[other], from = edited_top[other];
+    for (u32 i = 0; i < bar_steps; ++i)
+        place(frame, bar + i, static_cast<i32>(i) * bar_step, between(edited, from, left), unit, 0, keep);
+    for (u32 row = 0; row < 2; ++row) {
+        const bool growing = row == page;
+        const i32 ty = growing ? between(edited + title_y, was + grey_y, left) : between(grey + grey_y, from + title_y, left);
+        const i32 vy = growing ? between(edited + value_y, was + grey_y, left) : between(grey + grey_y, from + value_y, left);
+        // The values' size as a fraction of the header's 20 px.
+        const i32 size = growing ? between(unit, grow_scale, left) : between(grow_scale, unit, left);
+        const u32 title_slot = row == bright ? title_text : grey_title_text;
+        const u32 value_slot = row == bright ? value_text : grey_value_text;
+        const i32 scale = row == bright ? size : size * shrink_scale >> 10;
+        for (u32 i = 0; i < 4; ++i) {
+            const i32 x = static_cast<i32>(i) * column;
+            char value[header_capacity];
+            caption(value, sizeof(value), pages[row][i], input);
+            text(frame, title_slot + i, x + title_x, ty, unit, titles[pages[row][i]]);
+            text(frame, value_slot + i, x + value_x, vy, scale, value);
+        }
     }
 }
 }

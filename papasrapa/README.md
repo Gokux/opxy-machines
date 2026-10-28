@@ -9,12 +9,18 @@ description; no code or tables come from it. Read [engine.cpp](engine.cpp),
 [core.h](core.h) and [display.cpp](display.cpp) alongside the
 [engine API](https://github.com/etcetc000/open-xy/blob/staging/docs/api.md).
 
-| Encoder | Control | Alternate (press) |
+| Encoder | Page 1 | Page 2 |
 | --- | --- | --- |
 | 1 | Rate | Range |
 | 2 | Mod | Mode |
 | 3 | Divider | Octave |
 | 4 | Noise | S H |
+
+A press of any encoder switches all four to the other page
+(`"press": "page"`). The screen draws its own header with both pages in
+place: page 1 on top, page 2 under it. The page the encoders edit is the
+stock header's size on its stepped bar; the other is smaller and grey, and a
+switch grows and shrinks the two rows in about 0.15 s.
 
 | Control | Mapping |
 | --- | --- |
@@ -56,7 +62,7 @@ python sdk.py test --machine local/opxy-machines/papasrapa
 | [definition.json](definition.json) | Controls, presets, resources and the display shape |
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, lifecycle and sound |
 | [tables.h](tables.h) | LFO rates, shared by sound and screen |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Transistor radio screen |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | Transistor radio screen and the two-page header |
 | [machine.json](machine.json) | SDK version, kind, preferred identity (engine 8, page 86) and a long default amp release |
 
 A voice is 28 bytes; the definition allows 256 voices. Samples use Q15,
