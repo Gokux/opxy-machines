@@ -12,7 +12,7 @@ description; no code or tables come from it. Read [engine.cpp](engine.cpp),
 | Encoder | Page 1 | Page 2 |
 | --- | --- | --- |
 | 1 | Rate | Range |
-| 2 | Mod | Mode |
+| 2 | Mode | Mod |
 | 3 | Divider | Octave |
 | 4 | Noise | S H |
 
@@ -25,11 +25,11 @@ switch grows and shrinks the two rows in about 0.15 s.
 | Control | Mapping |
 | --- | --- |
 | Rate | LFO `0.1 * 200^value` Hz (0.1..20 Hz) |
-| Mod | Depth of whichever modulation Mode enables: FM raises the tone up to 4×, AM chops the output down to silence at full |
+| Mode | The fm and am switches: Drone, FM, AM, Both. Drone leaves the tone unmodulated, so Mod and Range act only through S H |
 | Divider | 1..16: a copy of the tone divided by that many cycles, mixed half and half with it; 1 is the tone alone |
 | Noise | White noise, up to 0.44 of full scale before the AM |
 | Range | x1, or x10 for an LFO up to 200 Hz |
-| Mode | The fm and am switches: Drone, FM, AM, Both |
+| Mod | Depth of whichever modulation Mode enables: FM raises the tone up to 4×, AM chops the output down to silence at full |
 | Octave | Hi, or Low for two octaves down |
 | S H | Each rising LFO edge samples noise; the held value moves the tone 0.25×..1.75× at full |
 

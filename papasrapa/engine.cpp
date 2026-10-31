@@ -69,8 +69,8 @@ inline void start(Voice& voice, Shared&, u32 owner) {
 inline void initialize(Voice& voice, Shared& shared, u32 owner) { start(voice, shared, owner); }
 inline void destroy(Voice&, Shared&, u32) {}
 
-// Parameters: 0 Rate, 1 Mod, 2 Divider, 3 Noise, then the alternates 4 Range
-// (Rate), 5 Mode (Mod), 6 Octave (Divider) and 7 S&H (Noise). Mode bit 0 is
+// Parameters: 0 Rate, 1 Mode, 2 Divider, 3 Noise, then the alternates 4 Range
+// (Rate), 5 Mod (Mode), 6 Octave (Divider) and 7 S&H (Noise). Mode bit 0 is
 // the FM switch and bit 1 the AM switch, as in the Drone, FM, AM, Both labels.
 // One definition in the SDK's voice translation unit, including its local
 // reciprocal table; neither needs inline-function COMDAT linkage.
@@ -78,7 +78,7 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
                    opxy::Parameters parameters, opxy::Pitch pitch) {
     const bool ten = parameters[4] >= 0x40000000;
     const u32 rate = static_cast<u32>(lookup(papasrapa_rate, parameters[0])) * (ten ? 10u : 1u);
-    const i32 mod = nonnegative(parameters[1]) >> 16;
+    const i32 mod = nonnegative(parameters[5]) >> 16;
     // Divider 1..16: the tone's copy counted down by that many cycles.
     const u32 divider = 1 + ((static_cast<u32>(nonnegative(parameters[2])) >> 16) * 16 >> 15);
     // Sixteen possible divisors: avoid software division in block setup.
@@ -90,7 +90,7 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
     };
     const i32 reciprocal = reciprocals[divider - 1];
     const i32 noise = mul15(nonnegative(parameters[3]) >> 16, NOISE_LEVEL >> 16);
-    const u32 mode = static_cast<u32>(nonnegative(parameters[5])) >> 29;
+    const u32 mode = static_cast<u32>(nonnegative(parameters[1])) >> 29;
     const bool fm = mode & 1u, am = (mode & 2u) != 0;
     const bool low = parameters[6] >= 0x40000000;
     const i32 sample_hold = nonnegative(parameters[7]) >> 16;

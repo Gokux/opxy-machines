@@ -29,13 +29,13 @@ inline i32 sy(i32 y) { return (125 + drop) * unit + (y - 125) * zoom; }
 inline i32 control(i32 word) { return clamp(word, 0, opxy::q31::maximum) >> 21; }  // Q10
 
 // A press switches between two pages (definition.json "press": "page"): Rate,
-// Mod, Divider and Noise, then Range, Mode, Octave and S&H. The artwork covers
+// Mode, Divider and Noise, then Range, Mod, Octave and S&H. The artwork covers
 // the stock header and draws both, page 1 on top and page 2 under it. The page
 // being edited is the stock header's size on its stepped bar; the other is
 // smaller and grey. A switch grows and shrinks the rows in place.
 const u32 pages[2][4] = {{0, 1, 2, 3}, {4, 5, 6, 7}};
 // Each slot's title as the stock header writes it, in lower case.
-const char* const titles[8] = {"rate", "mod", "divider", "noise", "range", "mode", "octave", "s h"};
+const char* const titles[8] = {"rate", "mode", "divider", "noise", "range", "mod", "octave", "s h"};
 // Positions, Q10 pixels, on the stock header's columns: titles at each column's
 // left, values 65 pixels in. Each row's top with its page edited and with the
 // other page edited: page 2 sits under page 1's bar, or moves up 2 pixels into
@@ -78,8 +78,8 @@ inline void amount(char* out, u32 capacity, i32 word) {
 // A slot's value as the header rows show it: Range, Mode and Octave by name.
 inline void caption(char* out, u32 capacity, u32 slot, const opxy::draw::Input& input) {
     const u32 word = static_cast<u32>(clamp(input.slots[slot], 0, opxy::q31::maximum));
-    if (slot == 4) copy(out, capacity, papasrapa_range_labels[word >> 30]);
-    else if (slot == 5) copy(out, capacity, papasrapa_mode_labels[word >> 29]);
+    if (slot == 1) copy(out, capacity, papasrapa_mode_labels[word >> 29]);
+    else if (slot == 4) copy(out, capacity, papasrapa_range_labels[word >> 30]);
     else if (slot == 6) copy(out, capacity, papasrapa_octave_labels[word >> 30]);
     else amount(out, capacity, input.slots[slot]);
 }
@@ -133,7 +133,7 @@ inline void display_reset(DisplayState& state) {
 inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& frame) {
     const i32 rate = control(input.slots[0]);
     const bool ten = input.slots[4] >= 0x40000000;
-    const u32 mode = static_cast<u32>(clamp(input.slots[5], 0, opxy::q31::maximum)) >> 29;
+    const u32 mode = static_cast<u32>(clamp(input.slots[1], 0, opxy::q31::maximum)) >> 29;
     const bool low = input.slots[6] >= 0x40000000;
     const i32 hz = (papasrapa_rate_hz[rate >> 6] + (papasrapa_rate_hz[(rate >> 6) + 1]
         - papasrapa_rate_hz[rate >> 6]) * (rate & 63) / 64) * (ten ? 10 : 1);
@@ -178,7 +178,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     w.divider = 1 + static_cast<u32>(control(input.slots[2]) * 16 / 1024);
     w.fm = mode & 1u;
     w.am = (mode & 2u) != 0;
-    w.mod = control(input.slots[1]);
+    w.mod = control(input.slots[5]);
     w.noise = control(input.slots[3]);
     w.sample_hold = control(input.slots[7]);
     wave_path(frame.paths[0], w);
