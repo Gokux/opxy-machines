@@ -145,14 +145,16 @@ inline void filter(opxy::Output mix, Voice& voice, i32 cutoff_step, i32 damping_
 }
 
 // Each note starts its oscillators at spread phases and its filter from
-// silence. LFO phases depend on the voice, so chords drift apart.
+// silence. The sweep starts at its centre, rising, so every note begins at the
+// Tone setting; the drift phases depend on the voice, so chords drift apart.
 inline void start(Voice& voice, Shared&, u32 owner) {
     voice.phases[0] = 0;
     voice.phases[1] = 0x55555555u;
     voice.phases[2] = 0xaaaaaaaau;
     voice.phases[3] = 0x2aaaaaaau;
     voice.phases[4] = 0;
-    for (u32 k = 0; k < 3; ++k) voice.lfos[k] = owner * 0x9e3779b9u * (k + 1);
+    voice.lfos[0] = 0;
+    for (u32 k = 1; k < 3; ++k) voice.lfos[k] = owner * 0x9e3779b9u * (k + 1);
     voice.low = voice.band = 0;
     voice.cutoff = voice.damping = voice.sub = voice.fifth = 0;
     voice.initialized = 0;

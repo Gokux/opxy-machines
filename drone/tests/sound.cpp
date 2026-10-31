@@ -3,10 +3,10 @@
 #include <cstdio>
 #include <cstring>
 
-// Preset levels measured before the optimization, at repository commit
-// 487e233, over 1024 blocks (first 128 discarded), owner 1, MIDI 36/60/84.
-// Ten percent allows the deliberate fixed-point quantization, while catching
-// lost oscillators, a broken filter, wrong gains or changes to preset levels.
+// Preset levels measured with every note's sweep starting at its centre (v1.1.4),
+// over 1024 blocks (first 128 discarded), owner 1, MIDI 36/60/84. Ten percent
+// allows fixed-point changes, while catching lost oscillators, a broken
+// filter, wrong gains or changes to preset levels.
 static const opxy::i32 presets[][8] = {
     {536870912, 751619276, 644245094, 1288490188, 429496729, 644245094, 0},
     {1288490188, 1181116006, 1073741824, 644245094, 751619276, 858993459, 858993459},
@@ -15,11 +15,11 @@ static const opxy::i32 presets[][8] = {
     {429496729, 1181116006, 150323855, 1073741824, 2147483647, 751619276, 2147483647}
 };
 static const double original_rms[][3] = {
-    {0.04955675, 0.05424661, 0.06527312},
-    {0.05522513, 0.06459412, 0.06234834},
-    {0.05952815, 0.05967940, 0.06063944},
-    {0.07303379, 0.07566791, 0.07571737},
-    {0.10356719, 0.10046111, 0.09874502}
+    {0.05274985, 0.05834438, 0.06799372},
+    {0.05633365, 0.06450739, 0.06237469},
+    {0.09320458, 0.09681698, 0.10002429},
+    {0.07041869, 0.07312983, 0.07486621},
+    {0.09663076, 0.10422708, 0.10817736}
 };
 
 static opxy::u32 increment(unsigned note) {
@@ -84,6 +84,31 @@ int main() {
                 std::fprintf(stderr, "preset %u octave %u RMS %.8f, original %.8f\n", preset, octave, rms, reference);
                 return 4;
             }
+        }
+    }
+    // Every note starts its sweep at the Tone setting: at Tone 0 with Motion,
+    // notes on different voices sound alike over their first second, rather
+    // than some staying at the filter's floor while others open.
+    {
+        const opxy::i32 dark[8] = {858993459, 0, 858993459, 1073741824, 644245094, 751619276, 0};
+        double lowest = 1, highest = 0;
+        for (opxy::u32 owner = 1; owner <= 16; ++owner) {
+            Voice voice{}; Shared shared{};
+            initialize(voice, shared, owner);
+            opxy::u32 pitch[64]; opxy::i32 output[64];
+            for (opxy::u32& word : pitch) word = increment(48);
+            double energy = 0;
+            for (unsigned block = 0; block < 689; ++block) {
+                render(voice, shared, owner, output, dark, pitch);
+                for (opxy::i32 sample : output) energy += (sample / 2147483648.0) * (sample / 2147483648.0);
+            }
+            const double rms = std::sqrt(energy / (689 * 64));
+            lowest = rms < lowest ? rms : lowest;
+            highest = rms > highest ? rms : highest;
+        }
+        if (highest > lowest * 1.1) {
+            std::fprintf(stderr, "Tone 0 notes differ: RMS %.6f..%.6f\n", lowest, highest);
+            return 5;
         }
     }
     return 0;
