@@ -53,22 +53,43 @@ inline i32 floor_bits(i32 value, unsigned bits) {
 }
 inline i32 mul15(i32 a, i32 b) { return floor_bits(a * b, 15); }
 
-// 2^31 / (increment >> 16), once per block per oscillator: the PolyBLEP's
-// distance / step becomes a Q31 multiply. A division in the sample loop is a
-// library call, which costs registers on every sample even when it never runs.
+// Negistor curve with eight fractional interpolation bits (Q15 output).
+inline i32 curve(u32 phase) {
+    const u32 index = phase >> 24;
+    const i32 low = floor_bits(solar_charge[index], 16);
+    const i32 high = floor_bits(solar_charge[index + 1], 16);
+    return low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
+}
+
+// The curve with its PolyBLEP edge, as the FM path renders it: the increment
+// moves per sample, so the edge width divides by its step.
+inline i32 negistor(u32 phase, u32 increment) {
+    i32 value = curve(phase);
+    const u32 step = increment >> 16;
+    if (step && increment < 0x80000000u) {
+        if (phase < increment) {
+            const u32 x = 65535u - minimum(phase / step, 65535u);
+            value += mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
+        } else if (0u - phase < increment) {
+            const u32 x = 65535u - minimum((0u - phase) / step, 65535u);
+            value -= mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
+        }
+    }
+    return value;
+}
+
+// 2^31 / (increment >> 16), once per block for an oscillator in a loop of its
+// own: the edge distance / step becomes a Q31 multiply. There the division's
+// library call costs registers on every sample; with five oscillators in one
+// loop, as under FM, the reciprocals cost more (measured on the device).
 inline i32 reciprocal(u32 increment) {
     const u32 step = increment >> 16;
     return step && increment < 0x80000000u ? static_cast<i32>(0x7fffffffu / step) : 0;
 }
 
-// Negistor curve with eight fractional interpolation bits (Q15 output). The
-// reciprocal belongs to the block's increment; under FM, where the increment
-// moves per sample, it approximates the edge width.
+// The same edge from a block's fixed increment and its reciprocal.
 inline i32 negistor(u32 phase, u32 increment, i32 reciprocal) {
-    const u32 index = phase >> 24;
-    const i32 low = floor_bits(solar_charge[index], 16);
-    const i32 high = floor_bits(solar_charge[index + 1], 16);
-    i32 value = low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
+    i32 value = curve(phase);
     if (reciprocal) {
         if (phase < increment) {
             const u32 t = static_cast<u32>(multiply(static_cast<i32>(phase), reciprocal));
@@ -102,7 +123,7 @@ inline i32 ramp(i32& current, i32 target) {
 // Specializing the five oscillators exposes fixed state offsets to the compiler.
 // Calls stay ordered: each oscillator reads its neighbor's most recent sample.
 template <unsigned n, bool moving>
-inline i32 oscillator(Voice& voice, const u32* increments, const i32* reciprocals, const i32* steps) {
+inline i32 oscillator(Voice& voice, const u32* increments, const i32* steps) {
     if (moving) voice.gains[n] += steps[n];
     // Each oscillator is modulated by its neighbour, the first by the last.
     const i32 modulator = voice.outputs[n == 0 ? 4 : n - 1];
@@ -111,7 +132,7 @@ inline i32 oscillator(Voice& voice, const u32* increments, const i32* reciprocal
     const i32 bend = static_cast<i32>(increments[n] >> 16) * depth
         + floor_bits(static_cast<i32>(increments[n] & 65535u) * depth, 16);
     const u32 increment = increments[n] + static_cast<u32>(bend * 2);
-    const i32 sample = negistor(voice.phases[n], increment, reciprocals[n]);
+    const i32 sample = negistor(voice.phases[n], increment);
     voice.outputs[n] = sample;
     const i32 result = mul15(sample, voice.gains[n] >> 8);
     voice.phases[n] += increment;
@@ -120,16 +141,15 @@ inline i32 oscillator(Voice& voice, const u32* increments, const i32* reciprocal
 
 // Above half Volt the oscillators modulate each other, sample by sample.
 template <bool moving>
-inline void render_modulated(Voice& voice, opxy::Output output, const u32* increments, const i32* reciprocals,
-                             const i32* steps, i32 fm_step) {
+inline void render_modulated(Voice& voice, opxy::Output output, const u32* increments, const i32* steps, i32 fm_step) {
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
         voice.fm += fm_step;
         i32 mix = 0;
-        mix += oscillator<0, moving>(voice, increments, reciprocals, steps);
-        mix += oscillator<1, moving>(voice, increments, reciprocals, steps);
-        mix += oscillator<2, moving>(voice, increments, reciprocals, steps);
-        mix += oscillator<3, moving>(voice, increments, reciprocals, steps);
-        mix += oscillator<4, moving>(voice, increments, reciprocals, steps);
+        mix += oscillator<0, moving>(voice, increments, steps);
+        mix += oscillator<1, moving>(voice, increments, steps);
+        mix += oscillator<2, moving>(voice, increments, steps);
+        mix += oscillator<3, moving>(voice, increments, steps);
+        mix += oscillator<4, moving>(voice, increments, steps);
         output[i] = clip(mix);
     }
 }
@@ -239,8 +259,8 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
         moving = moving || steps[n] != 0;
     }
     if (!modulated) render_unmodulated(voice, output, increments, reciprocals, steps);
-    else if (moving) render_modulated<true>(voice, output, increments, reciprocals, steps, fm_step);
-    else render_modulated<false>(voice, output, increments, reciprocals, steps, fm_step);
+    else if (moving) render_modulated<true>(voice, output, increments, steps, fm_step);
+    else render_modulated<false>(voice, output, increments, steps, fm_step);
 }
 
 } // namespace solar
