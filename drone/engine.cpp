@@ -100,16 +100,29 @@ inline void saws(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down) {
     phases[0] = a; phases[1] = b; phases[2] = c;
 }
 
-// The fifth saw at its smoothed Q23 level.
-inline void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
-    u32 p = phase;
-    i32 g = level;
+// The three saws, the fifth saw and, with_sub, the sub sine, each at its
+// smoothed Q23 level, in one pass: the same sums as the separate passes,
+// without storing the mix in between.
+template <bool with_sub>
+inline void saws_and_fifth(opxy::Output mix, Voice& voice, u32 centre, u32 up, u32 down,
+                           i32 fifth_step, i32 sub_step) {
+    u32 a = voice.phases[0], b = voice.phases[1], c = voice.phases[2], d = voice.phases[3], e = voice.phases[4];
+    i32 fifth = voice.fifth, sub = voice.sub;
+    const u32 above = centre + (centre >> 1), below = centre >> 1;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        g += step;
-        mix[i] += mul15(saw(p, increment), g >> 8);
-        p += increment;
+        fifth += fifth_step;
+        i32 value = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16)
+            + mul15(saw(d, above), fifth >> 8);
+        if (with_sub) {
+            sub += sub_step;
+            value += mul15(sine(e), sub >> 8);
+            e += below;
+        }
+        mix[i] = value;
+        a += centre; b += up; c += down; d += above;
     }
-    phase = p; level = g;
+    voice.phases[0] = a; voice.phases[1] = b; voice.phases[2] = c; voice.phases[3] = d; voice.phases[4] = e;
+    voice.fifth = fifth; voice.sub = sub;
 }
 
 // The sub sine an octave down at its smoothed Q23 level.
@@ -210,12 +223,20 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
     const i32 sub_step = ramp(voice.sub, sub >> 8);
     const i32 fifth_step = ramp(voice.fifth, fifth >> 8);
 
-    saws(output, voice.phases, base, up, down);
     // A silent fifth or sub only keeps its phase moving.
-    if (voice.fifth || fifth_step) add_fifth(output, voice.phases[3], base + (base >> 1), voice.fifth, fifth_step);
-    else voice.phases[3] += (base + (base >> 1)) * opxy::block_frames;
-    if (voice.sub || sub_step) add_sub(output, voice.phases[4], base >> 1, voice.sub, sub_step);
-    else voice.phases[4] += (base >> 1) * opxy::block_frames;
+    const bool fifth_on = voice.fifth || fifth_step, sub_on = voice.sub || sub_step;
+    if (fifth_on && sub_on) {
+        saws_and_fifth<true>(output, voice, base, up, down, fifth_step, sub_step);
+    } else {
+        if (fifth_on) {
+            saws_and_fifth<false>(output, voice, base, up, down, fifth_step, sub_step);
+        } else {
+            saws(output, voice.phases, base, up, down);
+            voice.phases[3] += (base + (base >> 1)) * opxy::block_frames;
+        }
+        if (sub_on) add_sub(output, voice.phases[4], base >> 1, voice.sub, sub_step);
+        else voice.phases[4] += (base >> 1) * opxy::block_frames;
+    }
     filter(output, voice, cutoff_step, damping_step);
 }
 
