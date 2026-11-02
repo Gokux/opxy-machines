@@ -98,35 +98,41 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
     // swoop with a time constant of 0.15 / rate, so slow rates sound like sirens.
     const i32 follow = static_cast<i32>(rate * 3 + rate / 3);
 
+    // The loop works on local copies of the voice: stores to the output could
+    // alias it, which would reload every field on every sample.
+    u32 phase = voice.phase, sub_phase = voice.sub_phase, lfo_phase = voice.lfo_phase, seed = voice.seed;
+    i32 glide = voice.glide, amplitude = voice.amplitude, held = voice.held;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        voice.lfo_phase += rate;
+        lfo_phase += rate;
         // A rising LFO edge clocks the sample-and-hold.
-        if (voice.lfo_phase < rate) voice.held = static_cast<i32>(next(voice.seed) >> 17) - 16384;
-        const i32 gate = voice.lfo_phase < 0x80000000u ? FULL : 0;
-        voice.glide += multiply(gate - voice.glide, follow);
+        if (lfo_phase < rate) held = static_cast<i32>(next(seed) >> 17) - 16384;
+        const i32 gate = lfo_phase < 0x80000000u ? FULL : 0;
+        glide += multiply(gate - glide, follow);
 
         // Q12 pitch ratio: enough headroom for FM and sample-and-hold together.
         i32 ratio = 4096;
-        if (fm) ratio += mul15(mul15(voice.glide >> 16, mod), 12288); // +3 in Q12
-        ratio = mul15(ratio, 32768 + mul15(mul15(voice.held, sample_hold), 49152)); // 1.5 in Q15
+        if (fm) ratio += mul15(mul15(glide >> 16, mod), 12288); // +3 in Q12
+        ratio = mul15(ratio, 32768 + mul15(mul15(held, sample_hold), 49152)); // 1.5 in Q15
         const u32 base = low ? pitch[i] >> 2 : pitch[i];
         const u32 product = (base >> 16) * static_cast<u32>(ratio)
             + ((base & 65535u) * static_cast<u32>(ratio) >> 16);
         const u32 increment = product >= HIGHEST >> 4 ? HIGHEST : product << 4;
 
-        i32 tone = square(voice.phase, increment);
+        i32 tone = square(phase, increment);
         if (divider > 1) {
             const u32 divided = static_cast<u32>(multiply(static_cast<i32>(increment >> 1), reciprocal)) << 1;
-            tone = floor_bits(tone, 1) + floor_bits(square(voice.sub_phase, divided), 1);
-            voice.sub_phase += divided;
+            tone = floor_bits(tone, 1) + floor_bits(square(sub_phase, divided), 1);
+            sub_phase += divided;
         }
-        voice.phase += increment;
+        phase += increment;
 
         const i32 target = am && !gate ? (32768 - mod) * 16 : 1 << 19;
-        voice.amplitude += floor_bits((target - voice.amplitude) * 2289, 15); // ~0.3 ms AM edges
-        const i32 hiss = mul15(floor_bits(static_cast<i32>(next(voice.seed)), 16), noise);
-        output[i] = clip(mul15(floor_bits(tone, 1) + hiss, voice.amplitude >> 4));
+        amplitude += floor_bits((target - amplitude) * 2289, 15); // ~0.3 ms AM edges
+        const i32 hiss = mul15(floor_bits(static_cast<i32>(next(seed)), 16), noise);
+        output[i] = clip(mul15(floor_bits(tone, 1) + hiss, amplitude >> 4));
     }
+    voice.phase = phase; voice.sub_phase = sub_phase; voice.lfo_phase = lfo_phase; voice.seed = seed;
+    voice.glide = glide; voice.amplitude = amplitude; voice.held = held;
 }
 
 } // namespace papasrapa
