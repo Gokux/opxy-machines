@@ -50,19 +50,26 @@ inline i32 lookup(const i32* table, i32 position) {
     return table[index] + multiply(table[index + 1] - table[index], fraction);
 }
 
-// Band-limited saw: the naive ramp plus a polynomial (PolyBLEP) correction on
-// the samples either side of each wrap. Integer division as in Braids; below
-// 2^16 (about 0.7 Hz) the step is too small to need it.
-inline i32 saw(u32 phase, u32 increment) {
-    i32 value = static_cast<i32>(phase >> 16) - 32768;
+// 2^31 / (increment >> 16), once per block per saw: the PolyBLEP's distance /
+// step becomes a Q31 multiply. A division in the sample loop is a library call,
+// which costs registers on every sample even when it never runs. Below 2^16
+// (about 0.7 Hz) the step is too small to need a correction.
+inline i32 reciprocal(u32 increment) {
     const u32 step = increment >> 16;
-    if (step && increment < 0x80000000u) {
+    return step && increment < 0x80000000u ? static_cast<i32>(0x7fffffffu / step) : 0;
+}
+
+// Band-limited saw: the naive ramp plus a polynomial (PolyBLEP) correction on
+// the samples either side of each wrap.
+inline i32 saw(u32 phase, u32 increment, i32 reciprocal) {
+    i32 value = static_cast<i32>(phase >> 16) - 32768;
+    if (reciprocal) {
         // (1 - x)^2 with x in Q16; shifting by 17 yields Q15.
         if (phase < increment) {
-            const u32 x = 65535u - minimum(phase / step, 65535u);
+            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(phase), reciprocal)), 65535u);
             value += static_cast<i32>((x * x) >> 17);
         } else if (0u - phase < increment) {
-            const u32 x = 65535u - minimum((0u - phase) / step, 65535u);
+            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(0u - phase), reciprocal)), 65535u);
             value -= static_cast<i32>((x * x) >> 17);
         }
     }
@@ -93,8 +100,9 @@ inline i32 ramp(i32& current, i32 target) {
 // The centre and the two side saws at one level; one product for the three.
 inline void saws(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down) {
     u32 a = phases[0], b = phases[1], c = phases[2];
+    const i32 ra = reciprocal(centre), rb = reciprocal(up), rc = reciprocal(down);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16);
+        mix[i] = mul15(saw(a, centre, ra) + saw(b, up, rb) + saw(c, down, rc), SAW_LEVEL >> 16);
         a += centre; b += up; c += down;
     }
     phases[0] = a; phases[1] = b; phases[2] = c;
@@ -108,10 +116,11 @@ inline void saws_and_fifth(opxy::Output mix, u32* phases, u32 centre, u32 up, u3
                            u32 fifth, i32& level, i32 step) {
     u32 a = phases[0], b = phases[1], c = phases[2], d = phases[3];
     i32 g = level;
+    const i32 ra = reciprocal(centre), rb = reciprocal(up), rc = reciprocal(down), rd = reciprocal(fifth);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
         if (moving) g += step;
-        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16)
-            + mul15(saw(d, fifth), g >> 8);
+        mix[i] = mul15(saw(a, centre, ra) + saw(b, up, rb) + saw(c, down, rc), SAW_LEVEL >> 16)
+            + mul15(saw(d, fifth, rd), g >> 8);
         a += centre; b += up; c += down; d += fifth;
     }
     phases[0] = a; phases[1] = b; phases[2] = c; phases[3] = d;
