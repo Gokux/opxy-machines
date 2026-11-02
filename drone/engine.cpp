@@ -100,37 +100,31 @@ inline void saws(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down) {
     phases[0] = a; phases[1] = b; phases[2] = c;
 }
 
-// The three saws, the fifth saw and, with_sub, the sub sine, each at its
-// smoothed Q23 level, in one pass: the same sums as the separate passes,
-// without storing the mix in between.
-template <bool with_sub>
-inline void saws_and_fifth(opxy::Output mix, Voice& voice, u32 centre, u32 up, u32 down,
-                           i32 fifth_step, i32 sub_step) {
-    u32 a = voice.phases[0], b = voice.phases[1], c = voice.phases[2], d = voice.phases[3], e = voice.phases[4];
-    i32 fifth = voice.fifth, sub = voice.sub;
-    const u32 above = centre + (centre >> 1), below = centre >> 1;
+// The three saws and the fifth saw at its smoothed Q23 level, in one pass: the
+// same sums as a separate fifth pass, without storing the mix in between. A
+// level that is not moving skips its ramp, which frees a register.
+template <bool moving>
+inline void saws_and_fifth(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down,
+                           u32 fifth, i32& level, i32 step) {
+    u32 a = phases[0], b = phases[1], c = phases[2], d = phases[3];
+    i32 g = level;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        fifth += fifth_step;
-        i32 value = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16)
-            + mul15(saw(d, above), fifth >> 8);
-        if (with_sub) {
-            sub += sub_step;
-            value += mul15(sine(e), sub >> 8);
-            e += below;
-        }
-        mix[i] = value;
-        a += centre; b += up; c += down; d += above;
+        if (moving) g += step;
+        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16)
+            + mul15(saw(d, fifth), g >> 8);
+        a += centre; b += up; c += down; d += fifth;
     }
-    voice.phases[0] = a; voice.phases[1] = b; voice.phases[2] = c; voice.phases[3] = d; voice.phases[4] = e;
-    voice.fifth = fifth; voice.sub = sub;
+    phases[0] = a; phases[1] = b; phases[2] = c; phases[3] = d;
+    level = g;
 }
 
 // The sub sine an octave down at its smoothed Q23 level.
+template <bool moving>
 inline void add_sub(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
     u32 p = phase;
     i32 g = level;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        g += step;
+        if (moving) g += step;
         mix[i] += mul15(sine(p), g >> 8);
         p += increment;
     }
@@ -224,19 +218,16 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
     const i32 fifth_step = ramp(voice.fifth, fifth >> 8);
 
     // A silent fifth or sub only keeps its phase moving.
-    const bool fifth_on = voice.fifth || fifth_step, sub_on = voice.sub || sub_step;
-    if (fifth_on && sub_on) {
-        saws_and_fifth<true>(output, voice, base, up, down, fifth_step, sub_step);
-    } else {
-        if (fifth_on) {
-            saws_and_fifth<false>(output, voice, base, up, down, fifth_step, sub_step);
-        } else {
-            saws(output, voice.phases, base, up, down);
-            voice.phases[3] += (base + (base >> 1)) * opxy::block_frames;
-        }
-        if (sub_on) add_sub(output, voice.phases[4], base >> 1, voice.sub, sub_step);
-        else voice.phases[4] += (base >> 1) * opxy::block_frames;
+    const u32 fifth_increment = base + (base >> 1);
+    if (fifth_step) saws_and_fifth<true>(output, voice.phases, base, up, down, fifth_increment, voice.fifth, fifth_step);
+    else if (voice.fifth) saws_and_fifth<false>(output, voice.phases, base, up, down, fifth_increment, voice.fifth, 0);
+    else {
+        saws(output, voice.phases, base, up, down);
+        voice.phases[3] += fifth_increment * opxy::block_frames;
     }
+    if (sub_step) add_sub<true>(output, voice.phases[4], base >> 1, voice.sub, sub_step);
+    else if (voice.sub) add_sub<false>(output, voice.phases[4], base >> 1, voice.sub, 0);
+    else voice.phases[4] += (base >> 1) * opxy::block_frames;
     filter(output, voice, cutoff_step, damping_step);
 }
 
