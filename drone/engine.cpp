@@ -50,19 +50,26 @@ inline i32 lookup(const i32* table, i32 position) {
     return table[index] + multiply(table[index + 1] - table[index], fraction);
 }
 
-// Band-limited saw: the naive ramp plus a polynomial (PolyBLEP) correction on
-// the samples either side of each wrap. Integer division as in Braids; below
-// 2^16 (about 0.7 Hz) the step is too small to need it.
-inline i32 saw(u32 phase, u32 increment) {
-    i32 value = static_cast<i32>(phase >> 16) - 32768;
+// 2^31 / (increment >> 16), once per block per saw: the PolyBLEP's distance /
+// step becomes a Q31 multiply. A division in the sample loop is a library call,
+// which costs registers on every sample even when it never runs. Below 2^16
+// (about 0.7 Hz) the step is too small to need a correction.
+inline i32 reciprocal(u32 increment) {
     const u32 step = increment >> 16;
-    if (step && increment < 0x80000000u) {
+    return step && increment < 0x80000000u ? static_cast<i32>(0x7fffffffu / step) : 0;
+}
+
+// Band-limited saw: the naive ramp plus a polynomial (PolyBLEP) correction on
+// the samples either side of each wrap.
+inline i32 saw(u32 phase, u32 increment, i32 reciprocal) {
+    i32 value = static_cast<i32>(phase >> 16) - 32768;
+    if (reciprocal) {
         // (1 - x)^2 with x in Q16; shifting by 17 yields Q15.
         if (phase < increment) {
-            const u32 x = 65535u - minimum(phase / step, 65535u);
+            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(phase), reciprocal)), 65535u);
             value += static_cast<i32>((x * x) >> 17);
         } else if (0u - phase < increment) {
-            const u32 x = 65535u - minimum((0u - phase) / step, 65535u);
+            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(0u - phase), reciprocal)), 65535u);
             value -= static_cast<i32>((x * x) >> 17);
         }
     }
@@ -90,32 +97,46 @@ inline i32 ramp(i32& current, i32 target) {
 // keep to registers. Loops work on local copies, since stores to the output
 // could alias the voice.
 
-// The centre and the two side saws at one level; one product for the three.
-inline void saws(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down) {
-    u32 a = phases[0], b = phases[1], c = phases[2];
+// One saw per pass: a saw alone in its loop keeps its few values in registers,
+// which measured lighter on the device than three or four saws sharing one.
+// The centre saw starts the mix, the upper one adds to it, and the lower one
+// adds and scales the three to their level: the same sum and one product as
+// before.
+inline void saw_first(opxy::Output mix, u32& phase, u32 increment) {
+    u32 p = phase;
+    const i32 r = reciprocal(increment);
+    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] = saw(p, increment, r); p += increment; }
+    phase = p;
+}
+inline void saw_add(opxy::Output mix, u32& phase, u32 increment) {
+    u32 p = phase;
+    const i32 r = reciprocal(increment);
+    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] += saw(p, increment, r); p += increment; }
+    phase = p;
+}
+inline void saw_last(opxy::Output mix, u32& phase, u32 increment) {
+    u32 p = phase;
+    const i32 r = reciprocal(increment);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16);
-        a += centre; b += up; c += down;
+        mix[i] = mul15(mix[i] + saw(p, increment, r), SAW_LEVEL >> 16);
+        p += increment;
     }
-    phases[0] = a; phases[1] = b; phases[2] = c;
+    phase = p;
 }
 
-// The three saws and the fifth saw at its smoothed Q23 level, in one pass: the
-// same sums as a separate fifth pass, without storing the mix in between. A
-// level that is not moving skips its ramp, which frees a register.
+// The fifth saw at its smoothed Q23 level. A level that is not moving skips
+// its ramp, which frees a register.
 template <bool moving>
-inline void saws_and_fifth(opxy::Output mix, u32* phases, u32 centre, u32 up, u32 down,
-                           u32 fifth, i32& level, i32 step) {
-    u32 a = phases[0], b = phases[1], c = phases[2], d = phases[3];
+inline void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
+    u32 p = phase;
     i32 g = level;
+    const i32 r = reciprocal(increment);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
         if (moving) g += step;
-        mix[i] = mul15(saw(a, centre) + saw(b, up) + saw(c, down), SAW_LEVEL >> 16)
-            + mul15(saw(d, fifth), g >> 8);
-        a += centre; b += up; c += down; d += fifth;
+        mix[i] += mul15(saw(p, increment, r), g >> 8);
+        p += increment;
     }
-    phases[0] = a; phases[1] = b; phases[2] = c; phases[3] = d;
-    level = g;
+    phase = p; level = g;
 }
 
 // The sub sine an octave down at its smoothed Q23 level.
@@ -219,12 +240,12 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
 
     // A silent fifth or sub only keeps its phase moving.
     const u32 fifth_increment = base + (base >> 1);
-    if (fifth_step) saws_and_fifth<true>(output, voice.phases, base, up, down, fifth_increment, voice.fifth, fifth_step);
-    else if (voice.fifth) saws_and_fifth<false>(output, voice.phases, base, up, down, fifth_increment, voice.fifth, 0);
-    else {
-        saws(output, voice.phases, base, up, down);
-        voice.phases[3] += fifth_increment * opxy::block_frames;
-    }
+    saw_first(output, voice.phases[0], base);
+    saw_add(output, voice.phases[1], up);
+    saw_last(output, voice.phases[2], down);
+    if (fifth_step) add_fifth<true>(output, voice.phases[3], fifth_increment, voice.fifth, fifth_step);
+    else if (voice.fifth) add_fifth<false>(output, voice.phases[3], fifth_increment, voice.fifth, 0);
+    else voice.phases[3] += fifth_increment * opxy::block_frames;
     if (sub_step) add_sub<true>(output, voice.phases[4], base >> 1, voice.sub, sub_step);
     else if (voice.sub) add_sub<false>(output, voice.phases[4], base >> 1, voice.sub, 0);
     else voice.phases[4] += (base >> 1) * opxy::block_frames;
