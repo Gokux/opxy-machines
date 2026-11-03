@@ -37,8 +37,8 @@ inline i32 saturate(i64 value) {
 
 inline i32 sine(u32 phase) {
     const u32 index = phase >> 24;
-    const i32 low = drone_sine[index];
-    const i32 high = drone_sine[index + 1];
+    const i32 low = floor_bits(drone_sine[index], 16);
+    const i32 high = floor_bits(drone_sine[index + 1], 16);
     return low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
 }
 

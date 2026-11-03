@@ -115,7 +115,7 @@ inline void draw_header(DisplayState& state, const opxy::draw::Input& input, Fra
 // Q10 sine, 256 steps per turn.
 inline i32 wave(u32 index) {
     const i32 s = drone_sine[index & 255];
-    return s / 32 - (s < 0 && s % 32 != 0);
+    return s / 2097152 - (s < 0 && s % 2097152 != 0);
 }
 
 // A two-blade propeller, narrow at the hub and the tips. The angle (256 steps
