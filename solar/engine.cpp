@@ -62,9 +62,12 @@ inline i32 curve(u32 phase) {
 }
 
 // The curve with its PolyBLEP edge, as the FM path renders it: the increment
-// moves per sample, so the edge width divides by its step.
+// moves per sample, so the edge width divides by its step. The curve itself is
+// read directly from solar_curve: with five oscillators in one loop, the
+// interpolation's extra loads and products cost about 80 cycles per sample
+// (measured on the device); a larger table cost more in cache misses.
 inline i32 negistor(u32 phase, u32 increment) {
-    i32 value = curve(phase);
+    i32 value = solar_curve[phase >> 22];
     const u32 step = increment >> 16;
     if (step && increment < 0x80000000u) {
         if (phase < increment) {
