@@ -53,11 +53,12 @@ inline i32 floor_bits(i32 value, unsigned bits) {
 }
 inline i32 mul15(i32 a, i32 b) { return floor_bits(a * b, 15); }
 
-// Negistor curve with eight fractional interpolation bits (Q15 output).
+// Negistor curve with eight fractional interpolation bits (Q15 output). The
+// table holds Q15 values, half the cache of Q31 ones.
 inline i32 curve(u32 phase) {
     const u32 index = phase >> 24;
-    const i32 low = floor_bits(solar_charge[index], 16);
-    const i32 high = floor_bits(solar_charge[index + 1], 16);
+    const i32 low = solar_charge[index];
+    const i32 high = solar_charge[index + 1];
     return low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
 }
 
@@ -65,9 +66,10 @@ inline i32 curve(u32 phase) {
 // moves per sample, so the edge width divides by its step. The curve itself is
 // read directly from solar_curve: with five oscillators in one loop, the
 // interpolation's extra loads and products cost about 80 cycles per sample
-// (measured on the device); a larger table cost more in cache misses.
+// (measured on the device). Its 512 entries keep it to 1 KB: a voice's share of
+// the data cache is only a few KB, and larger tables measured heavier.
 inline i32 negistor(u32 phase, u32 increment) {
-    i32 value = solar_curve[phase >> 22];
+    i32 value = solar_curve[phase >> 23];
     const u32 step = increment >> 16;
     if (step && increment < 0x80000000u) {
         if (phase < increment) {
