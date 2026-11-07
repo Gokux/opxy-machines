@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 env:
-  # SDK 1.4 (OP-XY OS 1.2.1): update deliberately when adopting another SDK revision.
-  OPEN_XY_REF: 9906bb605684da68a8207dec9925d833378235fc
+  # SDK 1.10 (OP-XY OS 1.2.1), for opxy/divide.hpp: update deliberately when adopting another SDK revision.
+  OPEN_XY_REF: 171f75fccad5942defaf63e5ba441ad3c1f843e9
 
 jobs:
   machines:

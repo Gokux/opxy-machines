@@ -1,4 +1,5 @@
 #include "core.h"
+#include <opxy/divide.hpp>
 #include <opxy/q31.hpp>
 #include "tables.h"
 
@@ -39,11 +40,14 @@ inline i32 lookup(const i32* table, i32 position) {
 }
 
 // (1 - x)^2 at half scale for x = distance / increment, the Q15 PolyBLEP residual
-// of a unit step; zero once the edge is a sample away.
+// of a unit step; zero once the edge is a sample away, as for most samples.
+// distance / step uses the SDK's inline 16-bit division: a library division in
+// the sample loop is a call, which costs registers on every sample even when
+// it never runs.
 inline i32 residual(u32 distance, u32 increment) {
     const u32 step = increment >> 16;
-    if (!step || distance >= increment) return 0;
-    const u32 x = 65535u - minimum(distance / step, 65535u);
+    if (__builtin_expect(!step || distance >= increment, 1)) return 0;
+    const u32 x = 65535u - opxy::divide::quotient16(minimum(distance, (step << 16) - 1), step);
     return static_cast<i32>((x * x) >> 18);
 }
 

@@ -1,4 +1,5 @@
 #include "core.h"
+#include <opxy/divide.hpp>
 #include <opxy/q31.hpp>
 #include "chords.h"
 #include "tables.h"
@@ -62,52 +63,34 @@ inline i32 curve(u32 phase) {
     return low + floor_bits((high - low) * static_cast<i32>((phase >> 16) & 255), 8);
 }
 
-// The curve with its PolyBLEP edge, as the FM path renders it: the increment
-// moves per sample, so the edge width divides by its step. The curve itself is
-// read directly from solar_curve: with five oscillators in one loop, the
-// interpolation's extra loads and products cost about 80 cycles per sample
-// (measured on the device). Its 512 entries keep it to 1 KB: a voice's share of
-// the data cache is only a few KB, and larger tables measured heavier.
-inline i32 negistor(u32 phase, u32 increment) {
-    i32 value = solar_curve[phase >> 23];
+// The PolyBLEP correction at the curve's reset, which few samples take. The
+// edge position, distance / step, uses the SDK's inline 16-bit division: a
+// library division in the sample loop is a call, which costs registers on
+// every sample even when it never runs. It also follows an increment that
+// moves per sample, as under FM.
+inline i32 edge(u32 phase, u32 increment) {
     const u32 step = increment >> 16;
-    if (step && increment < 0x80000000u) {
-        if (phase < increment) {
-            const u32 x = 65535u - minimum(phase / step, 65535u);
-            value += mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
-        } else if (0u - phase < increment) {
-            const u32 x = 65535u - minimum((0u - phase) / step, 65535u);
-            value -= mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
-        }
+    if (!step || increment >= 0x80000000u) return 0;
+    if (__builtin_expect(phase < increment, 0)) {
+        const u32 x = 65535u - opxy::divide::quotient16(minimum(phase, (step << 16) - 1), step);
+        return mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
     }
-    return value;
+    if (__builtin_expect(0u - phase < increment, 0)) {
+        const u32 x = 65535u - opxy::divide::quotient16(minimum(0u - phase, (step << 16) - 1), step);
+        return -mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
+    }
+    return 0;
 }
 
-// 2^31 / (increment >> 16), once per block for an oscillator in a loop of its
-// own: the edge distance / step becomes a Q31 multiply. There the division's
-// library call costs registers on every sample; with five oscillators in one
-// loop, as under FM, the reciprocals cost more (measured on the device).
-inline i32 reciprocal(u32 increment) {
-    const u32 step = increment >> 16;
-    return step && increment < 0x80000000u ? static_cast<i32>(0x7fffffffu / step) : 0;
-}
+// The curve with its edge, as the unmodulated path renders it.
+inline i32 negistor(u32 phase, u32 increment) { return curve(phase) + edge(phase, increment); }
 
-// The same edge from a block's fixed increment and its reciprocal.
-inline i32 negistor(u32 phase, u32 increment, i32 reciprocal) {
-    i32 value = curve(phase);
-    if (reciprocal) {
-        if (phase < increment) {
-            const u32 t = static_cast<u32>(multiply(static_cast<i32>(phase), reciprocal));
-            const u32 x = 65535u - minimum(t, 65535u);
-            value += mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
-        } else if (0u - phase < increment) {
-            const u32 t = static_cast<u32>(multiply(static_cast<i32>(0u - phase), reciprocal));
-            const u32 x = 65535u - minimum(t, 65535u);
-            value -= mul15(static_cast<i32>((x * x) >> 17), SOLAR_JUMP >> 16);
-        }
-    }
-    return value;
-}
+// The same as the FM path renders it, with the curve read directly from
+// solar_curve: with five oscillators in one loop, the interpolation's extra
+// loads and products cost about 80 cycles per sample (measured on the device).
+// Its 512 entries keep it to 1 KB: a voice's share of the data cache is only a
+// few KB, and larger tables measured heavier.
+inline i32 negistor_fm(u32 phase, u32 increment) { return solar_curve[phase >> 23] + edge(phase, increment); }
 
 inline i32 clip(i32 x) {
     x = x < -32767 ? -32767 : x > 32767 ? 32767 : x;
@@ -137,7 +120,7 @@ inline i32 oscillator(Voice& voice, const u32* increments, const i32* steps) {
     const i32 bend = static_cast<i32>(increments[n] >> 16) * depth
         + floor_bits(static_cast<i32>(increments[n] & 65535u) * depth, 16);
     const u32 increment = increments[n] + static_cast<u32>(bend * 2);
-    const i32 sample = negistor(voice.phases[n], increment);
+    const i32 sample = negistor_fm(voice.phases[n], increment);
     voice.outputs[n] = sample;
     const i32 result = mul15(sample, voice.gains[n] >> 8);
     voice.phases[n] += increment;
@@ -163,25 +146,23 @@ inline void render_modulated(Voice& voice, opxy::Output output, const u32* incre
 // whole block to the output in a loop of its own, where its few values keep
 // to registers, and a last pass clips the sum. A silent oscillator only keeps
 // its phase moving and its last sample current for when FM returns.
-inline void render_unmodulated(Voice& voice, opxy::Output output, const u32* increments, const i32* reciprocals,
-                               const i32* steps) {
+inline void render_unmodulated(Voice& voice, opxy::Output output, const u32* increments, const i32* steps) {
     for (unsigned i = 0; i != opxy::block_frames; ++i) output[i] = 0;
     for (unsigned n = 0; n < 5; ++n) {
         const u32 increment = increments[n];
-        const i32 r = reciprocals[n];
         u32 phase = voice.phases[n];
         i32 gain = voice.gains[n];
         const i32 step = steps[n];
         if (gain || step) {
             for (unsigned i = 0; i != opxy::block_frames; ++i) {
                 gain += step;
-                output[i] += mul15(negistor(phase, increment, r), gain >> 8);
+                output[i] += mul15(negistor(phase, increment), gain >> 8);
                 phase += increment;
             }
         } else {
             phase += increment * opxy::block_frames;
         }
-        voice.outputs[n] = negistor(phase - increment, increment, r);
+        voice.outputs[n] = negistor(phase - increment, increment);
         voice.phases[n] = phase;
         voice.gains[n] = gain;
     }
@@ -256,14 +237,13 @@ void render(Voice& voice, Shared&, u32, opxy::Output output,
     }
     const i32 fm_step = ramp(voice.fm, fm >> 8);
     const bool modulated = fm_step != 0 || voice.fm != 0;
-    i32 steps[5], reciprocals[5];
+    i32 steps[5];
     bool moving = false;
     for (unsigned n = 0; n < 5; ++n) {
         steps[n] = ramp(voice.gains[n], targets[n]);
-        reciprocals[n] = reciprocal(increments[n]);
         moving = moving || steps[n] != 0;
     }
-    if (!modulated) render_unmodulated(voice, output, increments, reciprocals, steps);
+    if (!modulated) render_unmodulated(voice, output, increments, steps);
     else if (moving) render_modulated<true>(voice, output, increments, steps, fm_step);
     else render_modulated<false>(voice, output, increments, steps, fm_step);
 }

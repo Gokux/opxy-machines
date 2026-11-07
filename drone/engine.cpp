@@ -1,4 +1,5 @@
 #include "core.h"
+#include <opxy/divide.hpp>
 #include <opxy/q31.hpp>
 #include "tables.h"
 
@@ -50,26 +51,29 @@ inline i32 lookup(const i32* table, i32 position) {
     return table[index] + multiply(table[index + 1] - table[index], fraction);
 }
 
-// 2^31 / (increment >> 16), once per block per saw: the PolyBLEP's distance /
-// step becomes a Q31 multiply. A division in the sample loop is a library call,
-// which costs registers on every sample even when it never runs. Below 2^16
-// (about 0.7 Hz) the step is too small to need a correction.
-inline i32 reciprocal(u32 increment) {
-    const u32 step = increment >> 16;
-    return step && increment < 0x80000000u ? static_cast<i32>(0x7fffffffu / step) : 0;
+// The PolyBLEP's edge step, increment >> 16, or 0 where no correction is
+// needed: below 2^16 (about 0.7 Hz) the step is too small to need one.
+inline u32 edge_step(u32 increment) {
+    return increment < 0x80000000u ? increment >> 16 : 0;
+}
+// distance / step, at most 65535, with the SDK's inline 16-bit division: a
+// library division in the sample loop is a call, which costs registers on
+// every sample even when it never runs.
+inline u32 edge_position(u32 distance, u32 step) {
+    return opxy::divide::quotient16(minimum(distance, (step << 16) - 1), step);
 }
 
 // Band-limited saw: the naive ramp plus a polynomial (PolyBLEP) correction on
-// the samples either side of each wrap.
-inline i32 saw(u32 phase, u32 increment, i32 reciprocal) {
+// the samples either side of each wrap, which few samples take.
+inline i32 saw(u32 phase, u32 increment, u32 step) {
     i32 value = static_cast<i32>(phase >> 16) - 32768;
-    if (reciprocal) {
+    if (step) {
         // (1 - x)^2 with x in Q16; shifting by 17 yields Q15.
-        if (phase < increment) {
-            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(phase), reciprocal)), 65535u);
+        if (__builtin_expect(phase < increment, 0)) {
+            const u32 x = 65535u - edge_position(phase, step);
             value += static_cast<i32>((x * x) >> 17);
-        } else if (0u - phase < increment) {
-            const u32 x = 65535u - minimum(static_cast<u32>(multiply(static_cast<i32>(0u - phase), reciprocal)), 65535u);
+        } else if (__builtin_expect(0u - phase < increment, 0)) {
+            const u32 x = 65535u - edge_position(0u - phase, step);
             value -= static_cast<i32>((x * x) >> 17);
         }
     }
@@ -95,30 +99,31 @@ inline i32 ramp(i32& current, i32 target) {
 // The block is rendered in passes over the output, which holds the Q15 mix
 // until the filter replaces it: few values stay live in each loop, so they
 // keep to registers. Loops work on local copies, since stores to the output
-// could alias the voice.
+// could alias the voice. Each pass is a function of its own: inside one large
+// render, GCC builds few of them as hardware loops.
 
 // One saw per pass: a saw alone in its loop keeps its few values in registers,
 // which measured lighter on the device than three or four saws sharing one.
 // The centre saw starts the mix, the upper one adds to it, and the lower one
 // adds and scales the three to their level: the same sum and one product as
 // before.
-inline void saw_first(opxy::Output mix, u32& phase, u32 increment) {
+__attribute__((noinline)) void saw_first(opxy::Output mix, u32& phase, u32 increment) {
     u32 p = phase;
-    const i32 r = reciprocal(increment);
-    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] = saw(p, increment, r); p += increment; }
+    const u32 s = edge_step(increment);
+    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] = saw(p, increment, s); p += increment; }
     phase = p;
 }
-inline void saw_add(opxy::Output mix, u32& phase, u32 increment) {
+__attribute__((noinline)) void saw_add(opxy::Output mix, u32& phase, u32 increment) {
     u32 p = phase;
-    const i32 r = reciprocal(increment);
-    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] += saw(p, increment, r); p += increment; }
+    const u32 s = edge_step(increment);
+    for (unsigned i = 0; i != opxy::block_frames; ++i) { mix[i] += saw(p, increment, s); p += increment; }
     phase = p;
 }
-inline void saw_last(opxy::Output mix, u32& phase, u32 increment) {
+__attribute__((noinline)) void saw_last(opxy::Output mix, u32& phase, u32 increment) {
     u32 p = phase;
-    const i32 r = reciprocal(increment);
+    const u32 s = edge_step(increment);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
-        mix[i] = mul15(mix[i] + saw(p, increment, r), SAW_LEVEL >> 16);
+        mix[i] = mul15(mix[i] + saw(p, increment, s), SAW_LEVEL >> 16);
         p += increment;
     }
     phase = p;
@@ -127,13 +132,13 @@ inline void saw_last(opxy::Output mix, u32& phase, u32 increment) {
 // The fifth saw at its smoothed Q23 level. A level that is not moving skips
 // its ramp, which frees a register.
 template <bool moving>
-inline void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
+__attribute__((noinline)) void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
     u32 p = phase;
     i32 g = level;
-    const i32 r = reciprocal(increment);
+    const u32 s = edge_step(increment);
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
         if (moving) g += step;
-        mix[i] += mul15(saw(p, increment, r), g >> 8);
+        mix[i] += mul15(saw(p, increment, s), g >> 8);
         p += increment;
     }
     phase = p; level = g;
@@ -141,7 +146,7 @@ inline void add_fifth(opxy::Output mix, u32& phase, u32 increment, i32& level, i
 
 // The sub sine an octave down at its smoothed Q23 level.
 template <bool moving>
-inline void add_sub(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
+__attribute__((noinline)) void add_sub(opxy::Output mix, u32& phase, u32 increment, i32& level, i32 step) {
     u32 p = phase;
     i32 g = level;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
@@ -156,7 +161,7 @@ inline void add_sub(opxy::Output mix, u32& phase, u32 increment, i32& level, i32
 // table cutoff and damping (f^2 + 2fq < 4). Saturation bounds high resonance.
 // Q17 filter state with Q14 coefficients keeps resonance headroom without a
 // 64-bit saturating sum in the sample loop.
-inline void filter(opxy::Output mix, Voice& voice, i32 cutoff_step, i32 damping_step) {
+__attribute__((noinline)) void filter(opxy::Output mix, Voice& voice, i32 cutoff_step, i32 damping_step) {
     i32 low = voice.low, band = voice.band, cutoff = voice.cutoff, damping = voice.damping;
     for (unsigned i = 0; i != opxy::block_frames; ++i) {
         cutoff += cutoff_step;
